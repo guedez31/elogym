@@ -1,0 +1,940 @@
+/* ===========================
+   AC ACADEMIA — style.css
+   Mobile-first. Base = celular, media queries ampliam.
+   =========================== */
+
+/* ---- Fontes ---- */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap");
+
+/* ---- Reset básico ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--preto);
+  background: var(--creme);
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+ul {
+  list-style: none;
+}
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ---- Variáveis de design ---- */
+:root {
+  --vermelho: #e53228;
+  --vermelho-escuro: #c22a20;
+  --preto: #1a1a1a;
+  --creme: #fff8f5;
+  --cinza-claro: #f2ece9;
+  --branco: #ffffff;
+
+  --font-titulo: "Poppins", sans-serif;
+  --font-corpo: "Inter", sans-serif;
+
+  --raio: 8px;
+  --raio-card: 12px;
+
+  --espaco-secao: 48px;
+  --container-max: 1140px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --espaco-secao: 96px;
+  }
+}
+
+/* ---- Foco visível (acessibilidade) ---- */
+:focus-visible {
+  outline: 3px solid var(--vermelho);
+  outline-offset: 2px;
+}
+
+/* ---- Utilitários ---- */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.secao {
+  padding: var(--espaco-secao) 0;
+}
+
+.secao--alt {
+  background: var(--cinza-claro);
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vermelho);
+  margin-bottom: 12px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--preto);
+}
+
+h1 {
+  font-size: 1.9rem;
+}
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+h3 {
+  font-size: 1.15rem;
+}
+
+p {
+  color: #4a4038;
+}
+
+.titulo-secao {
+  text-align: center;
+  max-width: 620px;
+  margin: 0 auto 40px;
+}
+.titulo-secao .eyebrow,
+.titulo-secao h2 {
+  display: block;
+}
+.titulo-secao h2 {
+  margin-bottom: 8px;
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 2.75rem;
+  }
+  h2 {
+    font-size: 2rem;
+  }
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 3.25rem;
+  }
+}
+
+/* ---- Botões ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border-radius: var(--raio);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: 2px solid transparent;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn--primario {
+  background: var(--vermelho);
+  color: var(--branco);
+}
+.btn--primario:hover {
+  background: var(--vermelho-escuro);
+}
+
+.btn--secundario {
+  background: transparent;
+  border-color: var(--preto);
+  color: var(--preto);
+}
+.btn--secundario:hover {
+  background: var(--preto);
+  color: var(--branco);
+}
+
+.btn--claro {
+  background: var(--branco);
+  color: var(--preto);
+}
+
+/* ---- Cards ---- */
+.card {
+  background: var(--branco);
+  border-radius: var(--raio-card);
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(26, 26, 26, 0.06);
+}
+
+/* ===========================
+   HEADER
+   =========================== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--branco);
+  border-bottom: 1px solid var(--cinza-claro);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.header__logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-titulo);
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.header__logo span {
+  color: var(--vermelho);
+}
+
+.header__menu {
+  display: none;
+  align-items: center;
+  gap: 28px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.header__cta {
+  display: none;
+}
+
+.header__toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 8px;
+}
+.header__toggle span {
+  width: 22px;
+  height: 2px;
+  background: var(--preto);
+  border-radius: 2px;
+}
+
+@media (min-width: 1024px) {
+  .header__inner {
+    height: 80px;
+  }
+  .header__menu {
+    display: flex;
+  }
+  .header__cta {
+    display: inline-flex;
+  }
+  .header__toggle {
+    display: none;
+  }
+}
+
+/* ===========================
+   HERO
+   =========================== */
+.hero__inner {
+  display: grid;
+  gap: 32px;
+  padding: 40px 0;
+  align-items: center;
+}
+
+.hero__texto p {
+  font-size: 1.05rem;
+  max-width: 46ch;
+  margin: 16px 0 28px;
+}
+
+.hero__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.hero__foto {
+  position: relative;
+  border-radius: var(--raio-card);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, var(--preto), #3a3a3a);
+}
+
+.hero__foto::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 6px solid var(--vermelho);
+  border-radius: var(--raio-card);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.hero__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (min-width: 1024px) {
+  .hero__inner {
+    grid-template-columns: 1fr 1fr;
+    padding: 80px 0;
+    gap: 60px;
+  }
+}
+
+/* ===========================
+   DIFERENCIAIS
+   =========================== */
+.grid-diferenciais {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+
+.diferencial {
+  text-align: left;
+}
+.diferencial__icone {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--vermelho);
+  color: var(--branco);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+}
+.diferencial p {
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+@media (min-width: 640px) {
+  .grid-diferenciais {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (min-width: 1024px) {
+  .grid-diferenciais {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===========================
+   GRID PILARES (3 colunas)
+   Usado em: sobre.html — seção "Os pilares da AC Academia"
+   Diferente de .grid-diferenciais (que é fixo em 4 colunas, usado na Home)
+   =========================== */
+.grid-pilares {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .grid-pilares {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===========================
+   SOBRE (resumo)
+   =========================== */
+.sobre__inner {
+  display: grid;
+  gap: 28px;
+  align-items: center;
+}
+.sobre__foto {
+  border-radius: var(--raio-card);
+  aspect-ratio: 4/3;
+  background: var(--cinza-claro);
+}
+
+@media (min-width: 1024px) {
+  .sobre__inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+  }
+}
+
+/* ===========================
+   BANNER SIMPLES (só texto)
+   Usado em: sobre.html — seção de abertura "Sobre nós"
+   Diferente de .sobre__inner (que é texto + foto lado a lado, usado na Home)
+   =========================== */
+.banner-simples {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+/* ===========================
+   PROFESSORES
+   =========================== */
+.grid-professores {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+}
+
+.professor__foto {
+  aspect-ratio: 1/1;
+  border-radius: var(--raio-card);
+  background: var(--preto);
+  margin-bottom: 16px;
+}
+
+.professor__especialidade {
+  color: var(--vermelho);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 640px) {
+  .grid-professores {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===========================
+   LOCALIZAÇÃO
+   =========================== */
+.local__inner {
+  display: grid;
+  gap: 24px;
+}
+.local__mapa {
+  border-radius: var(--raio-card);
+  overflow: hidden;
+  aspect-ratio: 16/9;
+}
+.local__mapa iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.local__info {
+  display: grid;
+  gap: 16px;
+}
+.local__item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.local__item strong {
+  display: block;
+  font-family: var(--font-titulo);
+}
+
+@media (min-width: 1024px) {
+  .local__inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+}
+
+/* ===========================
+   FOOTER
+   =========================== */
+.footer {
+  background: var(--preto);
+  color: var(--branco);
+  padding: 48px 0 24px;
+}
+.footer__inner {
+  display: grid;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+.footer__logo {
+  font-family: var(--font-titulo);
+  font-weight: 800;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+}
+.footer__logo span {
+  color: var(--vermelho);
+}
+.footer p,
+.footer a {
+  color: #c9c2bc;
+  font-size: 0.9rem;
+}
+.footer a:hover {
+  color: var(--branco);
+}
+.footer h4 {
+  color: var(--branco);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+.footer ul li {
+  margin-bottom: 8px;
+}
+.footer__bottom {
+  border-top: 1px solid #333;
+  padding-top: 20px;
+  font-size: 0.8rem;
+  color: #8a8478;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .footer__inner {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+}
+
+/* ===========================
+   CONTATO (formulário + dados lado a lado)
+   Usado em: contato.html
+   =========================== */
+.contato__inner {
+  display: grid;
+  gap: 32px;
+}
+@media (min-width: 1024px) {
+  .contato__inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+  }
+}
+
+/* ===========================
+   FORMULÁRIO DE CONTATO
+   Usado em: contato.html
+   =========================== */
+.contato__inner form label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+.contato__inner form label:first-child {
+  margin-top: 0;
+}
+
+.contato__inner form input,
+.contato__inner form textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd3cc;
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.contato__inner form textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.contato__inner form input:focus,
+.contato__inner form textarea:focus {
+  outline: none;
+  border-color: var(--vermelho);
+}
+
+.contato__inner form button {
+  margin-top: 24px;
+}
+
+.contato__inner ul li {
+  margin-bottom: 10px;
+}
+
+.contato__inner ul li:last-child {
+  margin-bottom: 0;
+}
+
+/* ===========================
+   CARROSSEL DE FOTOS
+   Usado em: index.html — seção "Sobre resumido" (.sobre__foto)
+   Empilha várias fotos no mesmo espaço; a classe .slide--ativo
+   controla qual delas fica visível (opacity 1)
+   =========================== */
+.carrossel {
+  position: relative;
+  border-radius: var(--raio-card);
+  overflow: hidden;
+}
+
+.carrossel .slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.carrossel .slide--ativo {
+  opacity: 1;
+}
+
+.login-pagina {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  max-height: 50vh;
+}
+
+.login-card {
+  background: var(--branco);
+  border-radius: var(--raio-card);
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(26, 26, 26, 0.06);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card form input {
+  width: 100%;
+  padding: 12px 24px;
+  border: 1px solid #ddd3cc;
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.link-secundario {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--preto);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link-secundario:hover {
+  color: var(--vermelho);
+}
+
+/* ===========================
+   BOTÃO CADASTRAR EXERCÍCIO
+   Usado em: painel-professor.html
+   Ação de destaque neutra, separada dos botões vermelhos da tabela
+   =========================== */
+.btn--exercicio {
+  background: var(--preto);
+  color: var(--branco);
+}
+
+.btn--exercicio:hover {
+  background: #333333;
+}
+
+/* ===========================
+   TABELA (cabeçalho + células)
+   Usado em: painel-professor.html e montar-treino.html
+   Estilo genérico pra qualquer <table> do sistema
+   =========================== */
+
+/* Célula de cabeçalho (<th>): fundo diferenciado pra destacar dos dados */
+th {
+  text-align: center;
+  padding: 12px 16px; /* respiro interno grande, deixa a tabela mais espaçosa */
+  border-bottom: 2px solid #ddd3cc; /* linha mais grossa separando cabeçalho dos dados */
+  color: var(--preto);
+  background-color: var(--cinza-claro); /* fundo diferente do resto da tabela */
+}
+
+/* Célula de dado (<td>): espaçamento e linha sutil entre as linhas */
+td {
+  text-align: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd3cc; /* linha mais fina que a do cabeçalho */
+}
+
+/* A tabela em si: ocupa toda a largura disponível */
+table {
+  border-collapse: separate; /* mantém as bordas "separadas" em vez de unidas numa só linha */
+  width: 100%;
+}
+
+/* ===========================
+   WRAPPER DA TABELA (scroll no mobile)
+   Envolve a <table> pra permitir rolagem horizontal em telas pequenas,
+   sem quebrar o layout do resto da página
+   =========================== */
+.tabela-wrapper {
+  overflow-x: auto;
+}
+
+/* ===========================
+   CABEÇALHO DO PAINEL (título + botão de ação alinhados nas pontas)
+   Usado em: painel-professor.html — "Meus Alunos" + "Cadastrar Exercício"
+   =========================== */
+.painel-cabecalho {
+  display: flex;
+  justify-content: space-between; /* título de um lado, botão do outro */
+  align-items: center; /* centraliza verticalmente os dois */
+  flex-wrap: wrap; /* no mobile, quebra linha em vez de espremer */
+  gap: 16px; /* espaço mínimo entre título e botão quando quebra linha */
+}
+
+/* ===========================
+   BOTÃO EDITAR (tabela de alunos)
+   Usado em: painel-professor.html
+   Ação neutra — aluno já tem treino atualizado
+   =========================== */
+.btn--editar {
+  background: transparent;
+  color: var(--preto);
+  border: 2px solid var(--preto);
+  min-width: 155px;
+  justify-content: center;
+}
+
+.btn--editar:hover {
+  background: var(--preto);
+  color: var(--branco);
+}
+
+/* ===========================
+   BOTÃO MONTAR TREINO (tabela de alunos)
+   Usado em: painel-professor.html
+   Ação de destaque — aluno ainda sem treino
+   =========================== */
+.btn--montar {
+  background: var(--vermelho);
+  color: var(--branco);
+  min-width: 155px;
+  justify-content: center;
+}
+
+.btn--montar:hover {
+  background: var(--vermelho-escuro);
+}
+
+/* ===========================
+   ABAS DE TREINO (A, B, C, D...)
+   Usado em: montar-treino.html (professor) e meu-treino.html (aluno)
+   =========================== */
+
+/* Container: coloca as abas lado a lado, com espaço entre elas */
+.abas-treino {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap; /* quebra linha no mobile se não couber todas */
+}
+
+/* Estilo base de toda aba (o "padrão", antes de saber se tá ativa ou não) */
+.aba {
+  padding: 10px 20px;
+  border-radius: var(--raio);
+  border: 2px solid var(--border-strong, #ddd3cc);
+  font-weight: 600;
+  color: var(--preto);
+  background: var(--branco);
+}
+
+/* Sobrescreve o estilo base só na aba que estiver marcada como ativa */
+.aba--ativa {
+  background: var(--vermelho);
+  color: var(--branco);
+  border-color: var(--vermelho);
+}
+
+/* Estilo do botão "+" — borda tracejada, cor apagada, sinalizando "ainda não funciona de verdade" */
+.aba--add {
+  border-style: dashed;
+  color: #999;
+}
+
+.aba--add:hover {
+  border-color: var(--vermelho);
+  color: var(--vermelho);
+}
+
+/* ===========================
+   FORMULÁRIO DE ADICIONAR EXERCÍCIO
+   Usado em: montar-treino.html
+   =========================== */
+
+/* Formulário começa escondido */
+.formulario-exercicio {
+  display: none;
+  margin-top: 16px;
+}
+
+/* Quando ganhar a classe "ativo" (via JS), aparece */
+.formulario-exercicio.ativo {
+  display: block;
+}
+
+/* ===========================
+   BOTÃO REMOVER EXERCÍCIO (tabela de treino)
+   Usado em: montar-treino.html
+   Ação de destaque — remove o exercício da tabela, não é neutro
+   =========================== */
+.btn--remover {
+  background: var(--vermelho);
+  color: var(--branco);
+  min-width: 155px;
+  justify-content: center;
+}
+
+.btn--remover:hover {
+  background: var(--vermelho-escuro);
+}
+
+/* ===========================
+   LINHA DO FORMULÁRIO (grid de 2 colunas)
+   Usado em: montar-treino.html — agrupa campos relacionados
+   (ex: grupo+exercício, séries+repetições, carga+observação)
+   =========================== */
+
+/* Estilo base: no mobile, cada linha vira 1 coluna só (campos empilhados) */
+.form-linha {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px; /* espaço entre os campos */
+  margin-bottom: 12px; /* espaço entre uma linha e a próxima */
+}
+
+/* A partir de 640px de largura de tela, cada linha vira 2 colunas lado a lado */
+@media (min-width: 640px) {
+  .form-linha {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===========================
+   CAMPOS DO FORMULÁRIO DE EXERCÍCIO
+   Usado em: montar-treino.html (professor)
+   =========================== */
+.formulario-exercicio select,
+.formulario-exercicio input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd3cc;
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.formulario-exercicio select:focus,
+.formulario-exercicio input:focus {
+  outline: none;
+  border-color: var(--vermelho);
+}
+
+.form-linha input,
+.form-linha select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd3cc;
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.form-linha input:focus,
+.form-linha select:focus {
+  outline: none;
+  border-color: var(--vermelho);
+}
+
+/* ===========================
+   TABELA DE TREINO DO ALUNO
+   Usado em: meu-treino.html (aluno)
+   =========================== */
+.tabela-treino th {
+  text-align: left;
+  padding: 12px 16px; /* respiro interno grande, deixa a tabela mais espaçosa */
+  border-bottom: 2px solid #ddd3cc; /* linha mais grossa separando cabeçalho dos dados */
+  color: var(--preto);
+  background-color: var(--cinza-claro); /* fundo diferente do resto da tabela */
+}
+
+/* Célula de dado (<td>): espaçamento e linha sutil entre as linhas */
+.tabela-treino td {
+  text-align: left;
+
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd3cc; /* linha mais fina que a do cabeçalho */
+}
+
+/* A tabela em si: ocupa toda a largura disponível */
+.tabela-treino {
+  border-collapse: separate; /* mantém as bordas "separadas" em vez de unidas numa só linha */
+  width: 100%;
+}
+
+/* ===========================
+   WRAPPER DA TABELA (scroll no mobile)
+   Envolve a <table> pra permitir rolagem horizontal em telas pequenas,
+   sem quebrar o layout do resto da página
+   =========================== */
+.tabela-wrapper {
+  overflow-x: auto;
+}
