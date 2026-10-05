@@ -1,37 +1,52 @@
+// ===========================
+// CARROSSEL DE FOTOS (só existe na Home)
+// ===========================
 // Pega todas as imagens com classe "slide" que estão dentro de algo com classe "carrossel"
 // e guarda essa lista na constante "slides" (ex: slides[0], slides[1], slides[2]...)
 const slides = document.querySelectorAll(".carrossel .slide ");
 
-// Guarda qual foto está ativa agora, começando pela primeira (índice 0)
-let indiceAtual = 0;
+// Só roda o carrossel se encontrou pelo menos uma foto na página atual
+if (slides.length > 0) {
+  // Guarda qual foto está ativa agora, começando pela primeira (índice 0)
+  let indiceAtual = 0;
 
-// Função que faz a troca de uma foto pra outra
-function trocarSlide() {
-  // Remove a classe "slide--ativo" da foto que está atualmente visível
-  slides[indiceAtual].classList.remove("slide--ativo");
+  // Função que faz a troca de uma foto pra outra
+  function trocarSlide() {
+    // Remove a classe "slide--ativo" da foto que está atualmente visível
+    slides[indiceAtual].classList.remove("slide--ativo");
 
-  // Calcula o próximo índice: soma 1, e usa "%" (resto da divisão)
-  // pra voltar ao 0 automaticamente quando chegar no final da lista
-  indiceAtual = (indiceAtual + 1) % slides.length;
+    // Calcula o próximo índice: soma 1, e usa "%" (resto da divisão)
+    // pra voltar ao 0 automaticamente quando chegar no final da lista
+    indiceAtual = (indiceAtual + 1) % slides.length;
 
-  // Adiciona a classe "slide--ativo" na nova foto, tornando ela visível
-  slides[indiceAtual].classList.add("slide--ativo");
+    // Adiciona a classe "slide--ativo" na nova foto, tornando ela visível
+    slides[indiceAtual].classList.add("slide--ativo");
+  }
+
+  // Chama a função trocarSlide() repetidamente, a cada 4000ms (4 segundos)
+  setInterval(trocarSlide, 4000);
 }
 
-// Chama a função trocarSlide() repetidamente, a cada 4000ms (4 segundos)
-setInterval(trocarSlide, 4000);
+// ===========================
+// TOGGLE DO FORMULÁRIO DE EXERCÍCIO (só existe no Montar Treino)
+// ===========================
 
 // Pega o botão e o formulário pelo id
 const botao = document.getElementById("btn-toggle-form");
 const formulario = document.getElementById("form-exercicio");
 
-// "Escuta" o evento de clique no botão
-botao.addEventListener("click", function () {
-  // Alterna a classe "ativo": remove se tiver, adiciona se não tiver
-  formulario.classList.toggle("ativo");
-});
+// Só adiciona o evento se os dois elementos existirem na página atual
+if (botao && formulario) {
+  // "Escuta" o evento de clique no botão
+  botao.addEventListener("click", function () {
+    // Alterna a classe "ativo": remove se tiver, adiciona se não tiver
+    formulario.classList.toggle("ativo");
+  });
+}
 
-//SELECT'S ADCIONAR EXERCICIO
+// ===========================
+// SELECT EM CASCATA: GRUPO MUSCULAR → EXERCÍCIO (só existe no Montar Treino)
+// ===========================
 const exerciciosPorGrupo = {
   peito: ["Supino Reto", "Supino Inclinado", "Crucifixo", "Crossover"],
   costas: [
@@ -60,23 +75,27 @@ const exerciciosPorGrupo = {
 
 const selectGrupo = document.getElementById("select-grupo");
 
-selectGrupo.addEventListener("change", function () {
-  // isso roda toda vez que o professor escolhe um grupo diferente
+// Só adiciona o evento se o select de grupo existir na página atual
+if (selectGrupo) {
+  selectGrupo.addEventListener("change", function () {
+    // isso roda toda vez que o professor escolhe um grupo diferente
 
-  const selectExercicio = document.getElementById("select-exercicio");
+    const selectExercicio = document.getElementById("select-exercicio");
 
-  // 1. Limpa as opções antigas
-  selectExercicio.innerHTML = "";
+    // 1. Limpa as opções antigas
+    selectExercicio.innerHTML = "";
 
-  // 2. Pega a lista de exercícios do grupo escolhido
-  const grupoEscolhido = selectGrupo.value;
-  const exercicios = exerciciosPorGrupo[grupoEscolhido];
+    // 2. Pega a lista de exercícios do grupo escolhido
+    const grupoEscolhido = selectGrupo.value;
+    const exercicios = exerciciosPorGrupo[grupoEscolhido];
 
-  // 3. Pra cada exercício da lista, cria uma <option> nova e adiciona no select
-  exercicios.forEach(function (nomeExercicio) {
-    const opcao = document.createElement("option");
-    opcao.value = nomeExercicio;
-    opcao.textContent = nomeExercicio;
-    selectExercicio.appendChild(opcao);
+    // 3. Pra cada exercício da lista, cria uma <option> nova e adiciona no select
+    exercicios.forEach(function (nomeExercicio) {
+      const opcao = document.createElement("option");
+      opcao.value = nomeExercicio;
+      opcao.textContent = nomeExercicio;
+      selectExercicio.appendChild(opcao);
+    });
   });
-});
+}
+s;
