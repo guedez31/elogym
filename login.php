@@ -6,8 +6,8 @@
 
 // Só processa se o formulário foi enviado (método POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $cpf = $_POST['cpf'];
-  $senha_digitada = $_POST['senha'];
+  $cpf = preg_replace('/\D/', '', $_POST['cpf'] ?? '');
+  $senha_digitada = trim($_POST['senha'] ?? '');
 
       // 1. Procura o CPF na tabela de ALUNOS
   $stmt = $pdo->prepare("SELECT * FROM alunos WHERE cpf = :cpf");
@@ -71,6 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="login-pagina">
       <div class="login-card">
         <h2 class="card-title">AC Academia</h2>
+        <?php if ($erro): ?>
+  <p style="color: #e53228; margin-bottom: 12px;"><?= $erro ?></p>
+<?php endif; ?>
         <form action="login.php" method="post">
           <div class="mb-3">
             <label for="cpf" class="form-label"></label>
