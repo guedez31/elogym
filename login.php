@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2 class="card-title">AC Academia</h2>
         <form action="login.php" method="post">
           <div class="mb-3">
-            <label for="email" class="form-label"></label>
+            <label for="cpf" class="form-label"></label>
             <input
               type="text"
               class="form-control"
