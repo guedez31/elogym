@@ -98,4 +98,3 @@ if (selectGrupo) {
     });
   });
 }
-s;
