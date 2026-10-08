@@ -1,3 +1,13 @@
+<?php
+// Protege a página: se não houver login na sessão ou se o usuário não for
+// aluno, volta pro login e interrompe o carregamento (o exit evita que o
+// resto da página seja processado).
+session_start();
+if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
+  header('Location: login.php');
+  exit;
+}
+?>
 <!doctype html>
 <html lang="pt-br">
   <head>
