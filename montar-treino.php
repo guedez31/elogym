@@ -1,3 +1,12 @@
+<?php
+// Protege a página da professora: se não houver login na sessão ou se o
+// usuário não for professor, volta pro login e interrompe o carregamento.
+session_start();
+if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
+  header('Location: login.php');
+  exit;
+}
+?>
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -13,7 +22,7 @@
         <a href="index.html" class="header__logo">AC <span>Academia</span></a>
 
         <nav class="header__menu">
-          <h3>Zézinho da Silva</h3>
+          <h3>Bem-vindo, Professor(a) <?php echo $_SESSION['usuario_nome']; ?></h3>
         </nav>
       </div>
     </header>
