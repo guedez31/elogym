@@ -6,7 +6,23 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor'
   header('Location: login.php');
   exit;
 }
+
+// Lê o id do aluno vindo da URL (?id=), busca o nome dele no banco e, se o id
+// for inválido ou o aluno não existir, devolve a professora pro painel.
+require_once 'conexao.php';
+
+$aluno_id = (int) ($_GET['id'] ?? 0);
+
+$stmt = $pdo->prepare("SELECT id, nome FROM alunos WHERE id = :id");
+$stmt->execute(['id' => $aluno_id]);
+$aluno = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$aluno) {
+  header('Location: professor.php');
+  exit;
+}
 ?>
+
 <!doctype html>
 <html lang="pt-BR">
   <head>
@@ -22,7 +38,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor'
         <a href="index.html" class="header__logo">AC <span>Academia</span></a>
 
         <nav class="header__menu">
-          <h3>Bem-vindo, Professor(a) <?php echo $_SESSION['usuario_nome']; ?></h3>
+          <h3><?= htmlspecialchars($aluno['nome']) ?></h3>
         </nav>
       </div>
     </header>
