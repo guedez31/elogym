@@ -47,53 +47,23 @@ if (botao && formulario) {
 // ===========================
 // SELECT EM CASCATA: GRUPO MUSCULAR → EXERCÍCIO (só existe no Montar Treino)
 // ===========================
-const exerciciosPorGrupo = {
-  peito: ["Supino Reto", "Supino Inclinado", "Crucifixo", "Crossover"],
-  costas: [
-    "Puxada Frontal",
-    "Remada Curvada",
-    "Levantamento Terra",
-    "Pulldown",
-  ],
-  quadriceps: ["Agachamento", "Leg Press", "Cadeira Extensora"],
-  posterior: ["Stiff", "Mesa Flexora", "Cadeira Flexora"],
-  gluteos: ["Hip Thrust", "Glute Bridge", "Abdução de Quadril"],
-  panturrilha: [
-    "Elevação de Panturrilha em Pé",
-    "Elevação de Panturrilha Sentado",
-  ],
-  abdomen: ["Prancha", "Abdominal Infra", "Abdominal Oblíquo", "Crunch"],
-  ombro: [
-    "Desenvolvimento",
-    "Elevação Lateral",
-    "Remada Alta",
-    "Elevação Frontal",
-  ],
-  biceps: ["Rosca Direta", "Rosca Martelo", "Rosca Scott", "Rosca Concentrada"],
-  triceps: ["Tríceps Testa", "Tríceps Pulley", "Paralela", "Triceps Coice"],
-};
-
+// Os exercícios por grupo vêm do banco: o montar-treino.php define a variável
+// exerciciosPorGrupo (id do grupo → lista de {id, nome}) antes de carregar este
+// arquivo. Ao escolher um grupo, o select de exercícios é refeito com a lista
+// dele; se voltar pra "Selecione um grupo", fica só a opção vazia.
 const selectGrupo = document.getElementById("select-grupo");
 
-// Só adiciona o evento se o select de grupo existir na página atual
-if (selectGrupo) {
+if (selectGrupo && typeof exerciciosPorGrupo !== "undefined") {
   selectGrupo.addEventListener("change", function () {
-    // isso roda toda vez que o professor escolhe um grupo diferente
-
     const selectExercicio = document.getElementById("select-exercicio");
+    selectExercicio.innerHTML =
+      '<option value="">Selecione um exercício</option>';
 
-    // 1. Limpa as opções antigas
-    selectExercicio.innerHTML = "";
-
-    // 2. Pega a lista de exercícios do grupo escolhido
-    const grupoEscolhido = selectGrupo.value;
-    const exercicios = exerciciosPorGrupo[grupoEscolhido];
-
-    // 3. Pra cada exercício da lista, cria uma <option> nova e adiciona no select
-    exercicios.forEach(function (nomeExercicio) {
+    const exercicios = exerciciosPorGrupo[selectGrupo.value] || [];
+    exercicios.forEach(function (ex) {
       const opcao = document.createElement("option");
-      opcao.value = nomeExercicio;
-      opcao.textContent = nomeExercicio;
+      opcao.value = ex.id;
+      opcao.textContent = ex.nome;
       selectExercicio.appendChild(opcao);
     });
   });
