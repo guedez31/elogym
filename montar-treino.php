@@ -21,6 +21,40 @@ if (!$aluno) {
   header('Location: professor.php');
   exit;
 }
+
+// Carrega os treinos ativos do aluno (viram as abas A, B, C...), escolhe o
+// treino aberto (o ?treino= da URL ou, se não houver, o primeiro) e busca os
+// exercícios dele em ordem. O INNER JOIN aqui é o certo: todo item de
+// treino_exercicios tem um exercício, então não existe "linha sem par".
+$stmt = $pdo->prepare("
+  SELECT id, letra FROM treinos
+  WHERE alunos_id = :aluno AND ativo = 1
+  ORDER BY letra
+");
+$stmt->execute(['aluno' => $aluno['id']]);
+$treinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$treino_pedido = (int) ($_GET['treino'] ?? 0);
+$treino_atual = $treinos[0] ?? null;
+foreach ($treinos as $t) {
+  if ($t['id'] == $treino_pedido) {
+    $treino_atula = $t;
+  }
+}
+
+$exercicios = [];
+if ($treino_atual) {
+  $stmt = $pdo->prepare("
+    SELECT te.id, e.nome, te.series, te.repeticoes, te.observacao
+    FROM treino_exercicios te
+    INNER JOIN exercicios e ON e.id = te.exercicios_id
+    WHERE te.treinos_id = :treino
+    ORDER BY te.ordem
+  ");
+  $stmt->execute(['treino' => $treino_atual['id']]);
+  $exercicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 ?>
 
 <!doctype html>
@@ -44,88 +78,32 @@ if (!$aluno) {
     </header>
     <br />
     <div class="abas-treino">
-      <a href="#.html" class="aba aba--ativa">Treino A</a>
-      <a href="#.html" class="aba">Treino B</a>
-      <a href="#.html" class="aba">Treino C</a>
-      <a href="#.html" class="aba">Treino D</a>
-      <a href="#.html" class="aba aba--add">+</a>
+      <?php foreach($treinos as $t): ?>
+      <a href="montar-treino.php?id=<?= $aluno['id'] ?>&treino=<?= $t['id'] ?>"
+        class="aba <?=  $t['id'] == ($treino_atual['id'] ?? 0) ? 'aba--ativa' : '' ?>">Treino <?=  htmlspecialchars($t['letra']) ?>
+      </a>
+      <?php endforeach; ?>
+      <a href="#" class="aba aba--add">+</a>
     </div>
     <br />
     <div class="tabela-wrapper">
       <table>
-        <tr>
-          <th>Exercício</th>
-          <th>Ação</th>
-        </tr>
-        <tr>
-          <td>
-            <h4>Supino reto barra</h4>
-            4x6-8
-          </td>
-          <td>
-            <a href="#" class="btn btn--remover">Remover</a>
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <h4>Supino Inclinado com halteres</h4>
-            3x8-10
-          </td>
-          <td>
-            <a href="#" class="btn btn--remover">Remover</a>
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <h4>Crucifixo Maquina</h4>
-            3x10-12 + DROP
-          </td>
-          <td>
-            <a href="#" class="btn btn--remover">Remover</a>
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <h4>Crossover (baixo → alto)</h4>
-            3x12-15
-          </td>
-          <td>
-            <a href="#" class="btn btn--remover">Remover</a>
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <h4>Tríceps corda</h4>
-            3x10-12 + REST-PAUSE
-          </td>
-          <td>
-            <a href="#" class="btn btn--remover">Remover</a>
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <h4>Tríceps testa</h4>
-            3x8-10
-          </td>
-          <td>
-            <a href="#" class="btn btn--remover">Remover</a>
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <h4>Paralelas</h4>
-            3x FALHA
-          </td>
-          <td>
-            <a href="#" class="btn btn--remover">Remover</a>
-          </td>
-        </tr>
+          <tr>
+            <th>Exercício</th>
+            <th>Ação</th>
+          </tr>
+        <?php foreach ($exercicios as $ex): ?>
+          <tr>
+            <td>
+              <h4><?=  htmlspecialchars($ex['nome']) ?></h4>
+              <?= htmlspecialchars($ex['series'] . 'x' . $ex['repeticoes']) ?>
+              <?=  $ex['observacao'] ? ' + ' . htmlspecialchars($ex['observacao']) : '' ?>
+            </td>
+            <td>
+              <a href="#" class="btn btn--remover">Remover</a>
+            </td>
+          </tr>
+        <?php endforeach; ?>
       </table>
     </div>
 
