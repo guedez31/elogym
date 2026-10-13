@@ -55,6 +55,16 @@ if ($treino_atual) {
   $exercicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Busca os grupos musculares e os exercícios do banco, organizados por grupo,
+// pra montar os dois selects do formulário de adicionar exercício.
+$grupos = $pdo->query("SELECT id, nome FROM grupo_muscular ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
+
+$exercicios_por_grupo = [];
+$lista = $pdo->query("SELECT id, nome, grupo_muscular_id FROM exercicios ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
+foreach ($lista as $e) {
+  $exercicios_por_grupo[$e['grupo_muscular_id']][] = ['id' => $e['id'], 'nome' => $e['nome']];
+}
+
 ?>
 
 <!doctype html>
@@ -113,40 +123,39 @@ if ($treino_atual) {
     <button type="button" class="btn btn--secundario" id="btn-toggle-form">
       + Adicionar Exercício
     </button>
-    <div class="formulario-exercicio" id="form-exercicio">
+
+  <?php if ($treino_atual): ?>
+    <form class="formulario-exercicio" id="form-exercicio" action="adicionar-exercicio.php" method="post">
+      <input type="hidden" name="aluno_id" value="<?= $aluno['id'] ?>" />
+      <input type="hidden" name="treino_id" value="<?= $treino_atual['id'] ?>" />
+
       <div class="form-linha">
-        <select name="grupo-muscular" id="select-grupo">
+        <select id="select-grupo" required>
           <option value="">Selecione um grupo muscular</option>
-          <option value="costas">Costas</option>
-          <option value="peito">Peito</option>
-          <option value="biceps">Bíceps</option>
-          <option value="triceps">Tríceps</option>
-          <option value="ombro">Ombro</option>
-          <option value="quadriceps">Quadríceps</option>
-          <option value="posterior">Posterior de perna</option>
-          <option value="gluteo">Glúteo</option>
-          <option value="panturrilha">Panturrilha</option>
-          <option value="abdomen">Abdômen</option>
+          <?php foreach ($grupos as $g): ?>
+            <option value="<?= $g['id'] ?>"><?= htmlspecialchars($g['nome']) ?></option>
+          <?php endforeach; ?>
         </select>
-        <select name="exercicio" id="select-exercicio">
+        <select name="exercicio_id" id="select-exercicio" required>
           <option value="">Selecione um exercício</option>
         </select>
       </div>
 
       <div class="form-linha">
-        <input type="number" placeholder="Séries" />
-        <input type="text" placeholder="Repetições (ex: 8-10)" />
+        <input type="number" name="series" min="1" placeholder="Séries" required />
+        <input type="text" name="repeticoes" placeholder="Repetições (ex: 8-10)" required />
       </div>
       <div class="form-linha">
-        <input type="text" placeholder="Carga (opcional)" />
-        <input type="text" placeholder="Observação (ex: DROP, FALHA)" />
+        <input type="text" name="carga" placeholder="Carga (opcional)" />
+        <input type="text" name="observacao" placeholder="Observação (ex: DROP, FALHA)" />
       </div>
 
-      <button type="button" class="btn btn--primario">
-        + Adicionar Exercício
-      </button>
-    </div>
-
+      <button type="submit" class="btn btn--primario">+ Salvar Exercício</button>
+    </form>
+  <?php endif; ?>
+    <script>
+      const exerciciosPorGrupo = <?= json_encode($exercicios_por_grupo, JSON_HEX_TAG) ?>;
+    </script>
     <script src="js/script.js"></script>
   </body>
 </html>
