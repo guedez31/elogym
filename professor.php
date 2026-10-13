@@ -69,7 +69,7 @@ $stmt = $pdo->query("
       <td><?= htmlspecialchars($aluno['nome']) ?></td>
       <?php if ($aluno['total_treinos'] > 0): ?>
         <td>Atualizado</td>
-        <td><a href="editar-aluno.php?id=<?= $aluno['id'] ?>" class="btn btn--editar">Editar</a></td>
+        <td><a href="montar-treino.php?id=<?= $aluno['id'] ?>" class="btn btn--editar">Editar</a></td>
       <?php else: ?>
         <td>Sem Treino</td>
         <td><a href="montar-treino.php?id=<?= $aluno['id'] ?>" class="btn btn--montar">Montar Treino</a></td>
