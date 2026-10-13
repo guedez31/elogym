@@ -38,7 +38,7 @@ $treino_pedido = (int) ($_GET['treino'] ?? 0);
 $treino_atual = $treinos[0] ?? null;
 foreach ($treinos as $t) {
   if ($t['id'] == $treino_pedido) {
-    $treino_atula = $t;
+    $treino_atual = $t;
   }
 }
 
@@ -83,7 +83,10 @@ if ($treino_atual) {
         class="aba <?=  $t['id'] == ($treino_atual['id'] ?? 0) ? 'aba--ativa' : '' ?>">Treino <?=  htmlspecialchars($t['letra']) ?>
       </a>
       <?php endforeach; ?>
-      <a href="#" class="aba aba--add">+</a>
+      <form action="criar-treino.php" method="post">
+        <input type="hidden" name="aluno_id" value="<?= $aluno['id'] ?>" />
+        <button type="submit" class="aba aba--add">+</button>
+      </form>
     </div>
     <br />
     <div class="tabela-wrapper">
