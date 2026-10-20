@@ -113,7 +113,13 @@ foreach ($lista as $e) {
               <?=  $ex['observacao'] ? ' + ' . htmlspecialchars($ex['observacao']) : '' ?>
             </td>
             <td>
-              <a href="#" class="btn btn--remover">Remover</a>
+              <form action= "remover-exercicio.php" method="post"
+                  onsubmit="return confirm('Remover este exercício do treino ?');">
+                <input type="hidden" name="aluno_id" value="<?=  $aluno['id'] ?>" />
+                <input type="hidden" name="treino_id" value="<?=  $treino_atual['id'] ?>"/>
+                <input type="hidden" name="item_id" value="<?=  $ex['id'] ?>"/>
+                <button type="submit" class="btn btn--remover">Remover</button> 
+              </form>
             </td>
           </tr>
         <?php endforeach; ?>
