@@ -7,7 +7,41 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
   header('Location: login.php');
   exit;
 }
+// Carrega os treinos ativos do aluno logado (viram as abas), escolhe o treino
+// aberto (o ?treino= da URL, só se for dele, ou o primeiro) e busca os exercícios
+// em ordem. O aluno vem da sessão, então nunca vê o treino de outra pessoa.
+require_once 'conexao.php';
 
+$aluno_id = $_SESSION['usuario_id'];
+
+$stmt = $pdo->prepare("
+  SELECT id, letra FROM treinos
+  WHERE alunos_id = :aluno AND ativo = 1
+  ORDER BY letra
+");
+$stmt->execute(['aluno' => $aluno_id]);
+$treinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$treino_pedido = (int) ($_GET['treino'] ?? 0);
+$treino_atual = $treinos[0] ?? null;
+foreach ($treinos as $t) {
+  if ($t['id'] == $treino_pedido) {
+    $treino_atual = $t;
+  }
+}
+
+$exercicios = [];
+if ($treino_atual) {
+  $stmt = $pdo->prepare("
+    SELECT e.nome, te.series, te.repeticoes, te.carga, te.observacao
+    FROM treino_exercicios te
+    INNER JOIN exercicios e ON e.id = te.exercicios_id
+    WHERE te.treinos_id = :treino
+    ORDER BY te.ordem
+  ");
+  $stmt->execute(['treino' => $treino_atual['id']]);
+  $exercicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -38,74 +72,46 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
     <br />
     <div >
       <div class="abas-treino">
-        <a href="#.html" class="aba aba--ativa">Treino A</a>
-        <a href="#.html" class="aba">Treino B</a>
-        <a href="#.html" class="aba">Treino C</a>
-        <a href="#.html" class="aba">Treino D</a>
-        <a href="#.html" class="aba aba--add">+</a>
-      </div>
-      <br />
-      <div class="tabela-wrapper">
-        <table class="tabela-treino">
-          <tr>
-            <th>Exercício</th>
-            <th>Séries x Repetições</th>
-          </tr>
+  <?php foreach ($treinos as $t): ?>
+    <a href="meu-treino.php?treino=<?= $t['id'] ?>"
+       class="aba <?= $t['id'] == ($treino_atual['id'] ?? 0) ? 'aba--ativa' : '' ?>">
+      Treino <?= htmlspecialchars($t['letra']) ?>
+    </a>
+  <?php endforeach; ?>
+</div>
+<br />
+
+<?php if (!$treino_atual): ?>
+  <p>Você ainda não tem treino cadastrado. Fale com o seu professor.</p>
+<?php endif; ?>
+
+    <?php if ($treino_atual): ?>
+    <div class="tabela-wrapper">
+      <table class="tabela-treino">
+        <tr>
+          <th>Exercício</th>
+          <th>Séries x Repetições</th>
+        </tr>
+        <?php foreach ($exercicios as $ex): ?>
           <tr>
             <td>
-              <h4>Supino reto barra</h4>
-              <td>4x6-8</td>
+              <h4><?= htmlspecialchars($ex['nome']) ?></h4>
+              <?= $ex['carga'] ? 'Carga: ' . htmlspecialchars($ex['carga']) : '' ?>
             </td>
-          </tr>
-
-          <tr>
             <td>
-              <h4>Supino Inclinado com halteres</h4>
-              <td>3x8-10</td>
+              <?= htmlspecialchars($ex['series'] . 'x' . $ex['repeticoes']) ?>
+              <?= $ex['observacao'] ? ' + ' . htmlspecialchars($ex['observacao']) : '' ?>
             </td>
           </tr>
+        <?php endforeach; ?>
+      </table>
+    </div>
+    <?php endif; ?>
 
-          <tr>
-            <td>
-              <h4>Crucifixo Maquina</h4>
-              <td>3x10-12 + DROP</td>
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              <h4>Crossover (baixo → alto)</h4>
-              <td>3x12-15</td>
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              <h4>Tríceps Pulley</h4>
-              <td>3x10-12 + REST-PAUSE</td>
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              <h4>Tríceps testa</h4>
-              <td>3x8-10</td>
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              <h4>Paralelas</h4>
-              <td>3x FALHA</td>
-            </td>
-          </tr>
-        </table>
-      </div>
-
-      <br />
-      <button type="button" class="btn btn--primario">
-        Baixar Treino em PDF
-      </button>
+          <br />
+          <button type="button" class="btn btn--primario">
+            Baixar Treino em PDF
+          </button>
     </div>
   </body>
 </html>
