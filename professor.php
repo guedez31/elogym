@@ -33,10 +33,10 @@ $stmt = $pdo->query("
     <!-- HEADER -->
     <header class="header">
       <div class="container header__inner">
-        <a href="index.html" class="header__logo">AC <span>Academia</span></a>
+        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
 
         <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?php echo $_SESSION['usuario_nome']; ?></p>
+          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
         </nav>
 
         <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
@@ -47,12 +47,18 @@ $stmt = $pdo->query("
       </div>
     </header>
     <br />
+
+    <?php if (isset($_GET['cadastrado'])): ?>
+      <p style="color: #1e7a3c; margin: 0 20px 12px;">Aluno cadastrado com sucesso!</p>
+    <?php endif; ?>
+
     <div class="cadastrar-exercicio card">
       <div class="cadastrar-exercicio card-body painel-cabecalho">
         <h2 class="card-title">Meus Alunos</h2>
-        <a href="cadastrar-exerc.php" class="btn btn--exercicio"
-          >+ Cadastrar Exercício</a
-        >
+        <div class="painel-acoes">
+          <a href="cadastrar-aluno.php" class="btn btn--primario">+ Cadastrar Aluno</a>
+          <a href="cadastrar-exerc.php" class="btn btn--exercicio">+ Cadastrar Exercício</a>
+        </div>
       </div>
     </div>
     <br />
