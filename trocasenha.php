@@ -7,6 +7,31 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
   header('Location: login.php');
   exit;
 }
+
+// Troca de senha do aluno em primeiro acesso: confere se as duas senhas batem e
+// têm tamanho mínimo, grava o hash novo, zera o primeiro_acesso e manda pro treino.
+require_once 'conexao.php';
+
+$erro = "";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $nova = $_POST['nova_senha'] ?? '';
+  $confirmar = $_POST['confirmar_senha'] ?? '';
+
+  if (strlen($nova) < 6) {
+    $erro = "A senha precisa ter pelo menos 6 caracteres.";
+  } elseif ($nova !== $confirmar) {
+    $erro = "As senhas não são iguais.";
+  } else {
+    $stmt = $pdo->prepare("UPDATE alunos SET senha = :senha, primeiro_acesso = 0 WHERE id = :id");
+    $stmt->execute([
+      'senha' => password_hash($nova, PASSWORD_DEFAULT),
+      'id' => $_SESSION['usuario_id']
+    ]);
+    header('Location: meu-treino.php');
+    exit;
+  }
+}
 ?>
 <!doctype html>
 <html lang="pt-br">
@@ -24,36 +49,27 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
           Primeira vez acessando o sistema? Crie uma nova senha para continuar.
         </p>
         <br />
-        <form action="#" method="post">
-          <div>
-            <label for="email" class="form-label"></label>
-            <input
-              type="password"
-              class="form-control"
-              id="email"
-              name="email"
-              required
-              placeholder="Nova Senha"
-            />
+        <?php if ($erro): ?>
+          <div class="alert alert--erro">
+            <?= $erro ?>
           </div>
-          <br />
-          <div>
-            <label for="senha" class="form-label"></label>
-            <input
-              type="password"
-              class="form-control"
-              id="senha"
-              name="senha"
-              required
-              placeholder="Confirmar Nova Senha"
-            />
-          </div>
-          <br />
-          <a href="meu-treino.php" class="btn btn--primario"
-            >Confirmar Nova Senha</a
-          >
-          <!--SUBSTITUIR DEPOIS <button type="submit">Entrar</button>-->
-        </form>
+        <?php endif; ?>
+        <?php if ($erro): ?>
+  <p style="color: #e53228; margin-bottom: 12px;"><?= htmlspecialchars($erro) ?></p>
+<?php endif; ?>
+<form action="trocasenha.php" method="post">
+  <div>
+    <input type="password" class="form-control" id="nova_senha" name="nova_senha"
+           required placeholder="Nova Senha" />
+  </div>
+  <br />
+  <div>
+    <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha"
+           required placeholder="Confirmar Nova Senha" />
+  </div>
+  <br />
+  <button type="submit" class="btn btn--primario">Confirmar Nova Senha</button>
+</form>
         <br />
       </div>
     </div>
