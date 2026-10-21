@@ -938,3 +938,51 @@ table {
 .tabela-wrapper {
   overflow-x: auto;
 }
+
+/* ===========================
+   PAINEL: AÇÕES E FORMULÁRIO DE CADASTRO
+   Usado em: professor.php (botões lado a lado) e cadastrar-aluno.php (formulário)
+   =========================== */
+.painel-acoes {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-formulario {
+  max-width: 480px;
+  margin: 24px auto;
+}
+
+.form-cadastro label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 16px 0 6px;
+}
+
+.form-cadastro input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd3cc;
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.form-cadastro input:focus {
+  outline: none;
+  border-color: var(--vermelho);
+}
+
+.form-cadastro small {
+  display: block;
+  margin-top: 6px;
+  color: #8a8478;
+  font-size: 0.8rem;
+}
+
+.form-cadastro button {
+  margin-top: 24px;
+}
