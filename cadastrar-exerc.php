@@ -1,28 +1,73 @@
 <?php
-// Protege a página da professora: se não houver login na sessão ou se o
-// usuário não for professor, volta pro login e interrompe o carregamento.
+// Cadastro de exercícios pela professora: confere nome e grupo (que precisa existir),
+// impede repetir o mesmo nome no mesmo grupo, grava e recarrega com aviso. Também busca
+// os grupos pro select e a lista de exercícios com quantas vezes cada um está em uso.
 session_start();
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
   header('Location: login.php');
   exit;
 }
+require_once 'conexao.php';
+
+$erro = "";
+$nome = "";
+$grupo_id = 0;
+
+$grupos = $pdo->query("SELECT id, nome FROM grupo_muscular ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $nome = trim($_POST['nome'] ?? '');
+  $grupo_id = (int) ($_POST['grupo_id'] ?? 0);
+
+  $stmt = $pdo->prepare("SELECT id FROM grupo_muscular WHERE id = :id");
+  $stmt->execute(['id' => $grupo_id]);
+  $grupo_ok = $stmt->fetch();
+
+  if ($nome === '' || mb_strlen($nome) > 150) {
+    $erro = "Informe o nome do exercício (até 150 caracteres).";
+  } elseif (!$grupo_ok) {
+    $erro = "Selecione um grupo muscular.";
+  } else {
+    $stmt = $pdo->prepare("SELECT id FROM exercicios WHERE nome = :nome AND grupo_muscular_id = :grupo");
+    $stmt->execute(['nome' => $nome, 'grupo' => $grupo_id]);
+
+    if ($stmt->fetch()) {
+      $erro = "Esse exercício já existe nesse grupo.";
+    } else {
+      $stmt = $pdo->prepare("INSERT INTO exercicios (nome, grupo_muscular_id) VALUES (:nome, :grupo)");
+      $stmt->execute(['nome' => $nome, 'grupo' => $grupo_id]);
+      header('Location: cadastrar-exerc.php?cadastrado=1');
+      exit;
+    }
+  }
+}
+
+$stmt = $pdo->query("
+  SELECT e.id, e.nome, g.nome AS grupo, COUNT(te.id) AS usos
+  FROM exercicios e
+  INNER JOIN grupo_muscular g ON g.id = e.grupo_muscular_id
+  LEFT JOIN treino_exercicios te ON te.exercicios_id = e.id
+  GROUP BY e.id, e.nome, g.nome
+  ORDER BY g.nome, e.nome
+");
+$lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Treine perto de casa</title>
+    <title>AC Academia — Cadastrar Exercício</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <!-- HEADER -->
     <header class="header">
       <div class="container header__inner">
-        <a href="index.html" class="header__logo">AC <span>Academia</span></a>
+        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
 
         <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?php echo $_SESSION['usuario_nome']; ?></p>
+          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
         </nav>
 
         <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
@@ -32,65 +77,78 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor'
         </button>
       </div>
     </header>
-    <br />
 
-    <div class="form-linha">
-      <input type="text" placeholder="Nome do Exercício" />
-      <select name="grupo-muscular" id="select-grupo">
-        <option value="">Selecione um grupo muscular</option>
-        <option value="costas">Costas</option>
-        <option value="peito">Peito</option>
-        <option value="biceps">Bíceps</option>
-        <option value="triceps">Tríceps</option>
-        <option value="ombro">Ombro</option>
-        <option value="quadriceps">Quadríceps</option>
-        <option value="posterior">Posterior de perna</option>
-        <option value="gluteo">Glúteo</option>
-        <option value="panturrilha">Panturrilha</option>
-        <option value="abdomen">Abdômen</option>
-      </select>
-    </div>
-    <button type="button" class="btn btn--primario">
-      + Cadastrar Exercício
-    </button>
+    <div class="container">
+      <br />
+      <div class="painel-cabecalho">
+        <h2>Cadastrar Exercício</h2>
+        <a href="professor.php" class="btn btn--secundario">← Voltar para Meus Alunos</a>
+      </div>
+      <br />
 
-    <div class="tabela-wrapper">
-      <table>
-        <tr>
-          <th>Exercícios já cadastrados</th>
-        </tr>
-        <tr>
-          <td>Peito - Supino Reto, Supino Inclinado, Cross-over</td>
-        </tr>
+      <?php if ($erro): ?>
+        <p style="color: #e53228; margin-bottom: 12px;"><?= htmlspecialchars($erro) ?></p>
+      <?php endif; ?>
+      <?php if (isset($_GET['cadastrado'])): ?>
+        <p style="color: #1e7a3c; margin-bottom: 12px;">Exercício cadastrado com sucesso!</p>
+      <?php endif; ?>
+      <?php if (isset($_GET['editado'])): ?>
+        <p style="color: #1e7a3c; margin-bottom: 12px;">Exercício atualizado com sucesso!</p>
+      <?php endif; ?>
+      <?php if (isset($_GET['excluido'])): ?>
+        <p style="color: #1e7a3c; margin-bottom: 12px;">Exercício excluído com sucesso!</p>
+      <?php endif; ?>
+      <?php if (isset($_GET['erro'])): ?>
+        <p style="color: #e53228; margin-bottom: 12px;">Não dá pra excluir: o exercício está em uso em algum treino.</p>
+      <?php endif; ?>
 
-        <tr>
-          <td>Bíceps - Rosca Direta, Rosca Alternada, Rosca Scott</td>
-        </tr>
-        <tr>
-          <td>Tríceps - Tríceps Testa, Tríceps Francês, Tríceps Corda</td>
-        </tr>
-        <tr>
-          <td>Ombro - Elevação Lateral, Desenvolvimento, Remada Alta</td>
-        </tr>
-        <tr>
-          <td>Costas - Puxada na Barra Fixa, Remada Unilateral, Pull-over</td>
-        </tr>
-        <tr>
-          <td>Quadríceps - Agachamento Livre, Leg Press, Hack</td>
-        </tr>
-        <tr>
-          <td>Posterior de perna - Stiff, Curl, Leg Curl</td>
-        </tr>
-        <tr>
-          <td>Glúteo - Elevação de Quadril, Glute Kickback, Hip Thrust</td>
-        </tr>
-        <tr>
-          <td>Panturrilha - Elevação de Panturrilha, Curl de Panturrilha</td>
-        </tr>
-        <tr>
-          <td>Abdômen - Prancha</td>
-        </tr>
-      </table>
+      <form action="cadastrar-exerc.php" method="post">
+        <div class="form-linha">
+          <input type="text" name="nome" placeholder="Nome do Exercício"
+                 value="<?= htmlspecialchars($nome) ?>" required />
+          <select name="grupo_id" required>
+            <option value="">Selecione um grupo muscular</option>
+            <?php foreach ($grupos as $g): ?>
+              <option value="<?= $g['id'] ?>" <?= $g['id'] == $grupo_id ? 'selected' : '' ?>>
+                <?= htmlspecialchars($g['nome']) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <button type="submit" class="btn btn--primario">+ Cadastrar Exercício</button>
+      </form>
+      <br />
+
+      <div class="tabela-wrapper">
+        <table>
+          <tr>
+            <th>Grupo</th>
+            <th>Exercício</th>
+            <th>Ação</th>
+          </tr>
+          <?php foreach ($lista as $ex): ?>
+            <tr>
+              <td><?= htmlspecialchars($ex['grupo']) ?></td>
+              <td><?= htmlspecialchars($ex['nome']) ?></td>
+              <td>
+                <div class="painel-acoes" style="justify-content: center;">
+                  <a href="editar-exercicio.php?id=<?= $ex['id'] ?>" class="btn btn--editar">Editar</a>
+                  <?php if ($ex['usos'] == 0): ?>
+                    <form action="excluir-exercicio.php" method="post"
+                          onsubmit="return confirm('Excluir este exercício?');">
+                      <input type="hidden" name="id" value="<?= $ex['id'] ?>" />
+                      <button type="submit" class="btn btn--remover">Excluir</button>
+                    </form>
+                  <?php else: ?>
+                    <span>Em uso (<?= $ex['usos'] ?>)</span>
+                  <?php endif; ?>
+                </div>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </table>
+      </div>
+      <br />
     </div>
   </body>
 </html>
