@@ -986,3 +986,19 @@ table {
 .form-cadastro button {
   margin-top: 24px;
 }
+
+/* Select do formulário de cadastro (mesmo visual dos inputs) */
+.form-cadastro select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd3cc;
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.form-cadastro select:focus {
+  outline: none;
+  border-color: var(--vermelho);
+}
