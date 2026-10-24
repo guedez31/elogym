@@ -1002,3 +1002,54 @@ table {
   outline: none;
   border-color: var(--vermelho);
 }
+
+/* ===========================
+   SIGLAS DE SAÚDE
+   Usado em: limitacoes.php, montar-treino.php e cadastrar-aluno.php
+   =========================== */
+
+/* Formulário de edição dentro da linha da tabela (campo do significado + botão Salvar) */
+.linha-edicao {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Campo de texto do significado, dentro da linha de edição */
+.linha-edicao input {
+  padding: 10px 12px;
+  border: 1px solid #ddd3cc;
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+  min-width: 200px;
+}
+
+/* Selo vermelho arredondado que mostra a sigla (ex: PA) no Montar Treino */
+.selo-saude {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--vermelho);
+  color: var(--branco);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Cada caixinha de limitação no cadastro de aluno: caixa e texto lado a lado, texto normal */
+.form-cadastro .caixa-saude {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  margin: 6px 0;
+}
+
+/* Desfaz a largura total do input só nas caixinhas de marcar */
+.form-cadastro .caixa-saude input {
+  width: auto;
+  padding: 0;
+}
