@@ -1,17 +1,15 @@
 <?php
-// Protege a página: se não houver login na sessão ou se o usuário não for
-// aluno, volta pro login e interrompe o carregamento (o exit evita que o
-// resto da página seja processado).
+// ---------- PROTEÇÃO ----------
+// Só aluno logado acessa esta página; qualquer outra pessoa volta pro login.
 session_start();
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
   header('Location: login.php');
   exit;
 }
-// Carrega os treinos ativos do aluno logado (viram as abas), escolhe o treino
-// aberto (o ?treino= da URL, só se for dele, ou o primeiro) e busca os exercícios
-// em ordem. O aluno vem da sessão, então nunca vê o treino de outra pessoa.
 require_once 'conexao.php';
 
+// ---------- TREINOS DO ALUNO (ABAS) ----------
+// O aluno vem da sessão (não da URL), então ele nunca consegue ver o treino de outra pessoa.
 $aluno_id = $_SESSION['usuario_id'];
 
 $stmt = $pdo->prepare("
@@ -22,6 +20,8 @@ $stmt = $pdo->prepare("
 $stmt->execute(['aluno' => $aluno_id]);
 $treinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// ---------- TREINO ABERTO ----------
+// Escolhe a aba aberta: a do ?treino= da URL (só se for deste aluno) ou, se não houver, a primeira.
 $treino_pedido = (int) ($_GET['treino'] ?? 0);
 $treino_atual = $treinos[0] ?? null;
 foreach ($treinos as $t) {
@@ -30,6 +30,8 @@ foreach ($treinos as $t) {
   }
 }
 
+// ---------- EXERCÍCIOS DO TREINO ----------
+// Busca os exercícios do treino aberto, na ordem em que a professora montou.
 $exercicios = [];
 if ($treino_atual) {
   $stmt = $pdo->prepare("
@@ -48,17 +50,17 @@ if ($treino_atual) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Treine perto de casa</title>
+    <title>AC Academia — Meu Treino</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <!-- HEADER -->
+    <!-- HEADER: logo (volta pra tela do aluno), nome do aluno e botão Sair -->
     <header class="header">
       <div class="container header__inner">
-        <a href="index.html" class="header__logo">AC <span>Academia</span></a>
+        <a href="meu-treino.php" class="header__logo">AC <span>Academia</span></a>
 
         <nav class="header__menu">
-          <p>Bem-vindo, Aluno(a) <?php echo $_SESSION['usuario_nome']; ?></p>
+          <p>Bem-vindo, Aluno(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
         </nav>
 
         <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
@@ -68,50 +70,48 @@ if ($treino_atual) {
         </button>
       </div>
     </header>
-
     <br />
-    <div >
-      <div class="abas-treino">
-  <?php foreach ($treinos as $t): ?>
-    <a href="meu-treino.php?treino=<?= $t['id'] ?>"
-       class="aba <?= $t['id'] == ($treino_atual['id'] ?? 0) ? 'aba--ativa' : '' ?>">
-      Treino <?= htmlspecialchars($t['letra']) ?>
-    </a>
-  <?php endforeach; ?>
-</div>
-<br />
 
-<?php if (!$treino_atual): ?>
-  <p>Você ainda não tem treino cadastrado. Fale com o seu professor.</p>
-<?php endif; ?>
+    <!-- ABAS DE TREINO: uma por treino do aluno (a aberta fica vermelha) -->
+    <div class="abas-treino">
+      <?php foreach ($treinos as $t): ?>
+        <a href="meu-treino.php?treino=<?= $t['id'] ?>"
+           class="aba <?= $t['id'] == ($treino_atual['id'] ?? 0) ? 'aba--ativa' : '' ?>">
+          Treino <?= htmlspecialchars($t['letra']) ?>
+        </a>
+      <?php endforeach; ?>
+    </div>
+    <br />
 
-    <?php if ($treino_atual): ?>
-    <div class="tabela-wrapper">
-      <table class="tabela-treino">
-        <tr>
-          <th>Exercício</th>
-          <th>Séries x Repetições</th>
-        </tr>
-        <?php foreach ($exercicios as $ex): ?>
+    <!-- CONTEÚDO: sem treino mostra a mensagem; com treino mostra a tabela e o botão de PDF -->
+    <?php if (!$treino_atual): ?>
+      <p>Você ainda não tem treino cadastrado. Fale com o seu professor.</p>
+    <?php else: ?>
+      <!-- Tabela de exercícios: nome com a carga (se houver) e séries x repetições com a observação -->
+      <div class="tabela-wrapper">
+        <table class="tabela-treino">
           <tr>
-            <td>
-              <h4><?= htmlspecialchars($ex['nome']) ?></h4>
-              <?= $ex['carga'] ? 'Carga: ' . htmlspecialchars($ex['carga']) : '' ?>
-            </td>
-            <td>
-              <?= htmlspecialchars($ex['series'] . 'x' . $ex['repeticoes']) ?>
-              <?= $ex['observacao'] ? ' + ' . htmlspecialchars($ex['observacao']) : '' ?>
-            </td>
+            <th>Exercício</th>
+            <th>Séries x Repetições</th>
           </tr>
-        <?php endforeach; ?>
-      </table>
-    </div>
-    <?php endif; ?>
+          <?php foreach ($exercicios as $ex): ?>
+            <tr>
+              <td>
+                <h4><?= htmlspecialchars($ex['nome']) ?></h4>
+                <?= $ex['carga'] ? 'Carga: ' . htmlspecialchars($ex['carga']) : '' ?>
+              </td>
+              <td>
+                <?= htmlspecialchars($ex['series'] . 'x' . $ex['repeticoes']) ?>
+                <?= $ex['observacao'] ? ' + ' . htmlspecialchars($ex['observacao']) : '' ?>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </table>
+      </div>
+      <br />
 
-          <br />
-          <button type="button" class="btn btn--primario">
-            Baixar Treino em PDF
-          </button>
-    </div>
+      <!-- Botão de PDF: ainda sem função, entra numa próxima etapa -->
+      <button type="button" class="btn btn--primario">Baixar Treino em PDF</button>
+    <?php endif; ?>
   </body>
 </html>
