@@ -11,6 +11,12 @@ require_once 'conexao.php';
 // ---------- TREINOS DO ALUNO (ABAS) ----------
 // O aluno vem da sessão (não da URL), então ele nunca consegue ver o treino de outra pessoa.
 $aluno_id = $_SESSION['usuario_id'];
+$stmt = $pdo->prepare("SELECT primeiro_acesso FROM alunos WHERE id = :id");
+$stmt->execute(['id' => $aluno_id]);
+if ($stmt->fetchColumn() == 1) {
+  header('Location: trocasenha.php');
+  exit;
+}
 
 $stmt = $pdo->prepare("
   SELECT id, letra FROM treinos
