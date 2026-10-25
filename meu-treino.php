@@ -99,22 +99,25 @@ if ($treino_atual) {
           <tr>
             <th>Exercício</th>
             <th>Séries x Repetições</th>
+            <th>Demonstração</th>
           </tr>
           <?php foreach ($exercicios as $ex): ?>
             <tr>
               <td>
-                <?php if ($ex['midia']): ?>
-                  <img src="<?= htmlspecialchars($ex['midia']) ?>"
-                       alt="Execução de <?= htmlspecialchars($ex['nome']) ?>"
-                       loading="lazy"
-                       style="width:100%;max-width:200px;border-radius:8px;display:block;margin-bottom:6px;">
-                <?php endif; ?>
                 <h4><?= htmlspecialchars($ex['nome']) ?></h4>
                 <?= $ex['carga'] ? 'Carga: ' . htmlspecialchars($ex['carga']) : '' ?>
               </td>
               <td>
                 <?= htmlspecialchars($ex['series'] . 'x' . $ex['repeticoes']) ?>
                 <?= $ex['observacao'] ? ' + ' . htmlspecialchars($ex['observacao']) : '' ?>
+              </td>
+              <td>
+                <?php if ($ex['midia']): ?>
+                  <img src="<?= htmlspecialchars($ex['midia']) ?>"
+                      alt="Execução de <?= htmlspecialchars($ex['nome']) ?>"
+                      loading="lazy"
+                      style="width:120px;border-radius:8px;display:block;">
+                <?php endif; ?>
               </td>
             </tr>
           <?php endforeach; ?>
