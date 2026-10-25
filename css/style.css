@@ -1053,3 +1053,13 @@ table {
   width: auto;
   padding: 0;
 }
+
+
+/*formata o pdf sem o cabeçalho */
+@media print {
+  .header,
+  .abas-treino,
+  .btn {
+    display: none !important;
+  }
+}

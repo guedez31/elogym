@@ -41,7 +41,7 @@ foreach ($treinos as $t) {
 $exercicios = [];
 if ($treino_atual) {
   $stmt = $pdo->prepare("
-    SELECT e.nome, te.series, te.repeticoes, te.carga, te.observacao
+    SELECT e.nome, e.midia, te.series, te.repeticoes, te.carga, te.observacao
     FROM treino_exercicios te
     INNER JOIN exercicios e ON e.id = te.exercicios_id
     WHERE te.treinos_id = :treino
@@ -103,6 +103,12 @@ if ($treino_atual) {
           <?php foreach ($exercicios as $ex): ?>
             <tr>
               <td>
+                <?php if ($ex['midia']): ?>
+                  <img src="<?= htmlspecialchars($ex['midia']) ?>"
+                       alt="Execução de <?= htmlspecialchars($ex['nome']) ?>"
+                       loading="lazy"
+                       style="width:100%;max-width:200px;border-radius:8px;display:block;margin-bottom:6px;">
+                <?php endif; ?>
                 <h4><?= htmlspecialchars($ex['nome']) ?></h4>
                 <?= $ex['carga'] ? 'Carga: ' . htmlspecialchars($ex['carga']) : '' ?>
               </td>
@@ -117,7 +123,7 @@ if ($treino_atual) {
       <br />
 
       <!-- Botão de PDF: ainda sem função, entra numa próxima etapa -->
-      <button type="button" class="btn btn--primario">Baixar Treino em PDF</button>
+      <button type="button" class="btn btn--primario" onclick="window.print()">Baixar Treino em PDF</button>
     <?php endif; ?>
   </body>
 </html>
