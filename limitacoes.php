@@ -76,11 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ---------- LISTA DE SIGLAS ----------
-// Busca todas as siglas e conta quantos alunos usam cada uma (LEFT JOIN mantém as que ninguém usa, com 0).
+// Busca todas as siglas, quantos alunos usam cada uma e QUEM usa (id:nome separados por "|").
+// O LEFT JOIN mantém as siglas que ninguém usa, com 0.
 $stmt = $pdo->query("
-  SELECT l.id, l.sigla, l.descricao, COUNT(al.alunos_id) AS usos
+  SELECT l.id, l.sigla, l.descricao,
+         COUNT(al.alunos_id) AS usos,
+         GROUP_CONCAT(CONCAT(a.id, ':', a.nome) ORDER BY a.nome SEPARATOR '|') AS alunos
   FROM limitacoes_saude l
   LEFT JOIN aluno_limitacoes al ON al.limitacoes_saude_id = l.id
+  LEFT JOIN alunos a ON a.id = al.alunos_id
   GROUP BY l.id, l.sigla, l.descricao
   ORDER BY l.sigla
 ");
@@ -94,7 +98,7 @@ $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>AC Academia — Siglas de Saúde</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
-  <body>
+  <body class="layout-sistema">
     <!-- HEADER: logo (volta pro painel), nome da professora e botão Sair -->
     <header class="header">
       <div class="container header__inner">
@@ -112,86 +116,130 @@ $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
       </div>
     </header>
 
-    <div class="container">
-      <br />
-      <!-- TÍTULO E BOTÃO VOLTAR -->
+    <main class="container pagina">
+      <!-- TÍTULO, EXPLICAÇÃO E BOTÃO VOLTAR -->
       <div class="painel-cabecalho">
-        <h2>Siglas de Saúde</h2>
+        <div>
+          <h2>Siglas de Saúde</h2>
+          <p class="subtitulo">Marcam as limitações dos alunos e aparecem como aviso no Montar Treino.</p>
+        </div>
         <a href="professor.php" class="btn btn--secundario">← Voltar para Meus Alunos</a>
       </div>
       <br />
 
       <!-- AVISOS: erro de validação (vermelho) e resultados das ações (verde) -->
       <?php if ($erro): ?>
-        <p style="color: #e53228; margin-bottom: 12px;"><?= htmlspecialchars($erro) ?></p>
+        <p class="alert alert--erro"><?= htmlspecialchars($erro) ?></p>
       <?php endif; ?>
       <?php if (($_GET['ok'] ?? '') === 'adicionada'): ?>
-        <p style="color: #1e7a3c; margin-bottom: 12px;">Sigla cadastrada com sucesso!</p>
+        <p class="alert alert--sucesso">Sigla cadastrada com sucesso!</p>
       <?php endif; ?>
       <?php if (($_GET['ok'] ?? '') === 'editada'): ?>
-        <p style="color: #1e7a3c; margin-bottom: 12px;">Significado atualizado com sucesso!</p>
+        <p class="alert alert--sucesso">Significado atualizado com sucesso!</p>
       <?php endif; ?>
       <?php if (($_GET['ok'] ?? '') === 'excluida'): ?>
-        <p style="color: #1e7a3c; margin-bottom: 12px;">Sigla excluída com sucesso!</p>
+        <p class="alert alert--sucesso">Sigla excluída com sucesso!</p>
       <?php endif; ?>
       <?php if (($_GET['erro'] ?? '') === 'em_uso'): ?>
-        <p style="color: #e53228; margin-bottom: 12px;">Não dá pra excluir: a sigla está em uso por algum aluno.</p>
+        <p class="alert alert--erro">Não dá pra excluir: a sigla está em uso por algum aluno.</p>
       <?php endif; ?>
 
-      <!-- FORMULÁRIO PARA CADASTRAR UMA SIGLA NOVA -->
-      <form action="limitacoes.php" method="post">
+      <!-- CARD DE CADASTRO: sigla estreita, significado largo e botão na mesma linha (desktop) -->
+      <form class="card form-novo" action="limitacoes.php" method="post">
         <input type="hidden" name="acao" value="adicionar" />
-        <div class="form-linha">
-          <input type="text" name="sigla" placeholder="Sigla (ex: PA)" maxlength="20"
-                 value="<?= htmlspecialchars($sigla) ?>" required />
+        <h3 class="form-novo__titulo">
+          Nova sigla
+          <!-- Prévia do selo: o JavaScript mostra enquanto a professora digita -->
+          <span class="selo-saude" id="previa-sigla" hidden></span>
+        </h3>
+        <div class="form-novo__campos form-novo__campos--sigla">
+          <input type="text" id="nova-sigla" name="sigla" placeholder="Sigla (ex: PA)" maxlength="20"
+                 value="<?= htmlspecialchars($sigla) ?>" required autocomplete="off" />
           <input type="text" name="descricao" placeholder="Significado (ex: Pressão alta)" maxlength="100"
                  value="<?= htmlspecialchars($descricao) ?>" required />
+          <button type="submit" class="btn btn--primario">+ Cadastrar</button>
         </div>
-        <button type="submit" class="btn btn--primario">+ Cadastrar Sigla</button>
       </form>
-      <br />
 
-      <!-- TABELA DE SIGLAS: significado editável na própria linha e botão Excluir -->
-      <div class="tabela-wrapper">
-        <table>
-          <tr>
-            <th>Sigla</th>
-            <th>Significado</th>
-            <th>Ação</th>
-          </tr>
+      <?php if (!$lista): ?>
+        <!-- ESTADO VAZIO -->
+        <div class="card estado-vazio" style="margin-top: 24px;">
+          <h3>Nenhuma sigla cadastrada ainda</h3>
+          <p>Cadastre a primeira acima (ex: PA = Pressão alta).</p>
+        </div>
+      <?php else: ?>
+        <!-- LISTA DE SIGLAS: cada linha mostra o texto; o "Editar" troca só aquela linha pro modo edição -->
+        <ul class="card lista-exercicios lista-siglas">
           <?php foreach ($lista as $l): ?>
-            <tr>
-              <td><strong><?= htmlspecialchars($l['sigla']) ?></strong></td>
+            <li class="item-exercicio item-sigla">
+              <div class="item-sigla__principal">
+                <span class="selo-saude"><?= htmlspecialchars($l['sigla']) ?></span>
 
-              <!-- Edição do significado: campo preenchido + botão Salvar -->
-              <td>
-                <form class="linha-edicao" action="limitacoes.php" method="post">
-                  <input type="hidden" name="acao" value="editar" />
-                  <input type="hidden" name="id" value="<?= $l['id'] ?>" />
-                  <input type="text" name="descricao" value="<?= htmlspecialchars($l['descricao']) ?>"
-                         maxlength="100" required />
-                  <button type="submit" class="btn btn--editar">Salvar</button>
-                </form>
-              </td>
+                <div class="item-sigla__conteudo">
+                  <!-- MODO LEITURA: significado + quem usa -->
+                  <div class="item-sigla__leitura">
+                    <strong><?= htmlspecialchars($l['descricao']) ?></strong>
+                    <?php if ($l['usos'] == 0): ?>
+                      <small>Nenhum aluno com essa sigla</small>
+                    <?php else: ?>
+                      <!-- <details> abre/fecha sozinho, sem JavaScript -->
+                      <details>
+                        <summary>Usada por <?= $l['usos'] ?> <?= $l['usos'] == 1 ? 'aluno' : 'alunos' ?></summary>
+                        <ul class="lista-alunos-sigla">
+                          <?php foreach (explode('|', $l['alunos']) as $item): ?>
+                            <?php [$aluno_id, $aluno_nome] = explode(':', $item, 2); ?>
+                            <li>
+                              <a href="editar-aluno.php?id=<?= (int) $aluno_id ?>"><?= htmlspecialchars($aluno_nome) ?></a>
+                            </li>
+                          <?php endforeach; ?>
+                        </ul>
+                      </details>
+                    <?php endif; ?>
+                  </div>
 
-              <!-- Exclusão: só aparece o botão se ninguém usa a sigla; senão mostra quantos usam -->
-              <td>
+                  <!-- MODO EDIÇÃO: escondido até clicar em "Editar" -->
+                  <form class="item-sigla__edicao" action="limitacoes.php" method="post">
+                    <input type="hidden" name="acao" value="editar" />
+                    <input type="hidden" name="id" value="<?= $l['id'] ?>" />
+                    <input type="text" name="descricao" value="<?= htmlspecialchars($l['descricao']) ?>"
+                           maxlength="100" required aria-label="Significado da sigla <?= htmlspecialchars($l['sigla']) ?>" />
+                    <button type="submit" class="btn btn--sm btn--primario">Salvar</button>
+                    <button type="button" class="btn btn--sm btn--editar" data-cancelar>Cancelar</button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- AÇÕES: Editar sempre; Excluir só se ninguém usa (senão, botão cinza "Em uso") -->
+              <div class="item-exercicio__acoes item-sigla__acoes">
+                <button type="button" class="btn btn--sm btn--editar" data-editar>Editar</button>
                 <?php if ($l['usos'] == 0): ?>
+                  <?php $mensagem = 'Excluir a sigla ' . $l['sigla'] . ' (' . $l['descricao'] . ')?'; ?>
                   <form action="limitacoes.php" method="post"
-                        onsubmit="return confirm('Excluir esta sigla?');">
+                        onsubmit="return confirm(<?= htmlspecialchars(json_encode($mensagem, JSON_UNESCAPED_UNICODE)) ?>);">
                     <input type="hidden" name="acao" value="excluir" />
                     <input type="hidden" name="id" value="<?= $l['id'] ?>" />
-                    <button type="submit" class="btn btn--remover">Excluir</button>
+                    <button type="submit" class="btn btn--sm btn--perigo">Excluir</button>
                   </form>
                 <?php else: ?>
-                  <span>Em uso (<?= $l['usos'] ?>)</span>
+                  <span class="btn btn--sm btn--bloqueado"
+                        title="Tire a sigla dos alunos pra poder excluir.">Em uso</span>
                 <?php endif; ?>
-              </td>
-            </tr>
+              </div>
+            </li>
           <?php endforeach; ?>
-        </table>
+        </ul>
+      <?php endif; ?>
+    </main>
+
+    <!-- FOOTER: crédito da EloGym -->
+    <footer class="footer-sistema">
+      <div class="container footer-sistema__inner">
+        <p class="footer-sistema__marca">Elo<span>Gym</span></p>
+        <p>© <?= date('Y') ?> EloGym. Todos os direitos reservados.</p>
+        <p>Sistema de treinos desenvolvido pela EloGym para a <strong>AC Academia</strong>.</p>
       </div>
-      <br />
-    </div>
+    </footer>
+
+    <script src="js/script.js"></script>
   </body>
 </html>

@@ -141,10 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Avisos: sucesso (verde) e erro de validação (vermelho) -->
         <?php if (($_GET['ok'] ?? '') === 'dados'): ?>
-          <p style="color: #1e7a3c; margin-bottom: 12px;">Dados atualizados com sucesso!</p>
+          <p class="alert alert--sucesso">Dados atualizados com sucesso!</p>
         <?php endif; ?>
         <?php if ($erro_dados): ?>
-          <p style="color: #e53228; margin-bottom: 12px;"><?= htmlspecialchars($erro_dados) ?></p>
+          <p class="alert alert--erro"><?= htmlspecialchars($erro_dados) ?></p>
         <?php endif; ?>
 
         <form class="form-cadastro" action="editar-aluno.php" method="post">
@@ -182,10 +182,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <br />
 
         <?php if (($_GET['ok'] ?? '') === 'senha'): ?>
-          <p style="color: #1e7a3c; margin-bottom: 12px;">Senha redefinida! Passe a nova senha ao aluno.</p>
+          <p class="alert alert--sucesso">Senha redefinida! Passe a nova senha ao aluno.</p>
         <?php endif; ?>
         <?php if ($erro_senha): ?>
-          <p style="color: #e53228; margin-bottom: 12px;"><?= htmlspecialchars($erro_senha) ?></p>
+          <p class="alert alert--erro"><?= htmlspecialchars($erro_senha) ?></p>
         <?php endif; ?>
 
         <form class="form-cadastro" action="editar-aluno.php" method="post"

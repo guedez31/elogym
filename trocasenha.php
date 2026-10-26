@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -44,36 +44,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <body>
     <div class="login-pagina">
       <div class="login-card">
-        <h2 class="card-title">AC Academia</h2>
-        <p>
-          Primeira vez acessando o sistema? Crie uma nova senha para continuar.
-        </p>
+        <h2>AC Academia</h2>
+        <p>Primeira vez acessando o sistema? Crie uma nova senha para continuar.</p>
         <br />
+
+        <!-- AVISO DE ERRO (um só, com o texto escapado) -->
         <?php if ($erro): ?>
-          <div class="alert alert--erro">
-            <?= $erro ?>
-          </div>
+          <p class="alert alert--erro"><?= htmlspecialchars($erro) ?></p>
         <?php endif; ?>
-        <?php if ($erro): ?>
-  <p style="color: #e53228; margin-bottom: 12px;"><?= htmlspecialchars($erro) ?></p>
-<?php endif; ?>
-<form action="trocasenha.php" method="post">
-  <div>
-    <input type="password" class="form-control" id="nova_senha" name="nova_senha"
-           required placeholder="Nova Senha" />
-  </div>
-  <br />
-  <div>
-    <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha"
-           required placeholder="Confirmar Nova Senha" />
-  </div>
-  <br />
-  <button type="submit" class="btn btn--primario">Confirmar Nova Senha</button>
-</form>
-        <br />
+
+        <form action="trocasenha.php" method="post">
+          <input type="password" id="nova_senha" name="nova_senha"
+                 required minlength="6" placeholder="Nova senha (mínimo 6 caracteres)" />
+          <br /><br />
+          <input type="password" id="confirmar_senha" name="confirmar_senha"
+                 required minlength="6" placeholder="Confirmar nova senha" />
+          <br /><br />
+          <button type="submit" class="btn btn--primario">Confirmar Nova Senha</button>
+        </form>
       </div>
     </div>
-
-    <script src="js/script.js"></script>
   </body>
 </html>
