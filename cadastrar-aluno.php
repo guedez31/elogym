@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- AVISO DE ERRO DE VALIDAÇÃO -->
         <?php if ($erro): ?>
-          <p style="color: #e53228; margin-bottom: 12px;"><?= htmlspecialchars($erro) ?></p>
+          <p class="alert alert--erro"><?= htmlspecialchars($erro) ?></p>
         <?php endif; ?>
 
         <!-- FORMULÁRIO DE CADASTRO -->

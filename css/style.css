@@ -41,6 +41,7 @@ ul {
 }
 button {
   font-family: inherit;
+  line-height: inherit; /* sem isso o <button> fica mais baixo que um <a class="btn"> */
   cursor: pointer;
 }
 
@@ -48,9 +49,14 @@ button {
 :root {
   --vermelho: #e53228;
   --vermelho-escuro: #c22a20;
+  --vermelho-claro: #fdecea;
+  --verde: #1e7a3c;
+  --verde-claro: #e6f4ea;
   --preto: #1a1a1a;
   --creme: #fff8f5;
   --cinza-claro: #f2ece9;
+  --cinza-texto: #8a8478;
+  --borda: #ddd3cc;
   --branco: #ffffff;
 
   --font-titulo: "Poppins", sans-serif;
@@ -81,6 +87,12 @@ button {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 0 20px;
+}
+
+/* Área principal das páginas do sistema (respiro em cima e embaixo) */
+.pagina {
+  padding-top: 24px;
+  padding-bottom: 48px;
 }
 
 .secao {
@@ -226,7 +238,9 @@ p {
   height: 64px;
 }
 
+/* A ordem visual: logo e hambúrguer na 1ª linha; menu e "Sair" embaixo quando o menu abre no celular */
 .header__logo {
+  order: 1;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -238,19 +252,8 @@ p {
   color: var(--vermelho);
 }
 
-.header__menu {
-  display: none;
-  align-items: center;
-  gap: 28px;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.header__cta {
-  display: none;
-}
-
 .header__toggle {
+  order: 2;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -263,6 +266,72 @@ p {
   height: 2px;
   background: var(--preto);
   border-radius: 2px;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.header__menu {
+  order: 3;
+  display: none;
+  align-items: center;
+  gap: 28px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.header__cta {
+  order: 4;
+  display: none;
+}
+
+/* ---- Menu mobile aberto (o JS coloca a classe .header--aberto no <header>) ---- */
+@media (max-width: 1023px) {
+  .header--aberto .header__inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding-bottom: 16px;
+  }
+
+  /* Mantém a 1ª linha (logo + X) com a mesma altura do header fechado */
+  .header--aberto .header__logo {
+    min-height: 64px;
+  }
+
+  .header--aberto .header__menu {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+    border-top: 1px solid var(--cinza-claro);
+    padding-top: 8px;
+  }
+
+  .header--aberto .header__menu a,
+  .header--aberto .header__menu p {
+    display: block;
+    width: 100%;
+    padding: 10px 0;
+  }
+
+  .header--aberto .header__cta {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  /* Hambúrguer vira "X" */
+  .header--aberto .header__toggle span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .header--aberto .header__toggle span:nth-child(2) {
+    opacity: 0;
+  }
+  .header--aberto .header__toggle span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -377,7 +446,6 @@ p {
 /* ===========================
    GRID PILARES (3 colunas)
    Usado em: sobre.html — seção "Os pilares da AC Academia"
-   Diferente de .grid-diferenciais (que é fixo em 4 colunas, usado na Home)
    =========================== */
 .grid-pilares {
   display: grid;
@@ -417,7 +485,6 @@ p {
 /* ===========================
    BANNER SIMPLES (só texto)
    Usado em: sobre.html — seção de abertura "Sobre nós"
-   Diferente de .sobre__inner (que é texto + foto lado a lado, usado na Home)
    =========================== */
 .banner-simples {
   max-width: 640px;
@@ -534,7 +601,7 @@ p {
   border-top: 1px solid #333;
   padding-top: 20px;
   font-size: 0.8rem;
-  color: #8a8478;
+  color: var(--cinza-texto);
   text-align: center;
 }
 
@@ -579,7 +646,7 @@ p {
 .contato__inner form textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #ddd3cc;
+  border: 1px solid var(--borda);
   border-radius: var(--raio);
   font-family: var(--font-corpo);
   font-size: 0.95rem;
@@ -612,8 +679,6 @@ p {
 /* ===========================
    CARROSSEL DE FOTOS
    Usado em: index.html — seção "Sobre resumido" (.sobre__foto)
-   Empilha várias fotos no mesmo espaço; a classe .slide--ativo
-   controla qual delas fica visível (opacity 1)
    =========================== */
 .carrossel {
   position: relative;
@@ -635,12 +700,33 @@ p {
   opacity: 1;
 }
 
+/* ===========================
+   LOGIN E TROCA DE SENHA
+   =========================== */
+/* Centraliza o card na tela; o padding evita que ele encoste nas bordas no celular */
 .login-pagina {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 70vh;
-  max-height: 50vh;
+  padding: 32px 20px;
+}
+
+.login-card h2 {
+  margin-bottom: 8px;
+}
+
+/* Rótulo que só leitores de tela "veem" (acessibilidade sem mudar o visual) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .login-card {
@@ -655,7 +741,7 @@ p {
 .login-card form input {
   width: 100%;
   padding: 12px 24px;
-  border: 1px solid #ddd3cc;
+  border: 1px solid var(--borda);
   border-radius: var(--raio);
   font-family: var(--font-corpo);
   font-size: 0.95rem;
@@ -678,7 +764,6 @@ p {
 
 /* ===========================
    BOTÃO CADASTRAR EXERCÍCIO
-   Usado em: painel-professor.html
    Ação de destaque neutra, separada dos botões vermelhos da tabela
    =========================== */
 .btn--exercicio {
@@ -692,57 +777,52 @@ p {
 
 /* ===========================
    TABELA (cabeçalho + células)
-   Usado em: painel-professor.html e montar-treino.html
    Estilo genérico pra qualquer <table> do sistema
    =========================== */
-
-/* Célula de cabeçalho (<th>): fundo diferenciado pra destacar dos dados */
 th {
   text-align: center;
-  padding: 12px 16px; /* respiro interno grande, deixa a tabela mais espaçosa */
-  border-bottom: 2px solid #ddd3cc; /* linha mais grossa separando cabeçalho dos dados */
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--borda);
   color: var(--preto);
-  background-color: var(--cinza-claro); /* fundo diferente do resto da tabela */
+  background-color: var(--cinza-claro);
 }
 
-/* Célula de dado (<td>): espaçamento e linha sutil entre as linhas */
 td {
   text-align: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #ddd3cc; /* linha mais fina que a do cabeçalho */
+  border-bottom: 1px solid var(--borda);
 }
 
-/* A tabela em si: ocupa toda a largura disponível */
 table {
-  border-collapse: separate; /* mantém as bordas "separadas" em vez de unidas numa só linha */
+  border-collapse: separate;
   width: 100%;
 }
 
 /* ===========================
    WRAPPER DA TABELA (scroll no mobile)
-   Envolve a <table> pra permitir rolagem horizontal em telas pequenas,
-   sem quebrar o layout do resto da página
    =========================== */
 .tabela-wrapper {
   overflow-x: auto;
 }
 
 /* ===========================
-   CABEÇALHO DO PAINEL (título + botão de ação alinhados nas pontas)
-   Usado em: painel-professor.html — "Meus Alunos" + "Cadastrar Exercício"
+   CABEÇALHO DO PAINEL (título + botões alinhados nas pontas)
    =========================== */
 .painel-cabecalho {
   display: flex;
-  justify-content: space-between; /* título de um lado, botão do outro */
-  align-items: center; /* centraliza verticalmente os dois */
-  flex-wrap: wrap; /* no mobile, quebra linha em vez de espremer */
-  gap: 16px; /* espaço mínimo entre título e botão quando quebra linha */
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* O título já fica alinhado pelo flex; a margem de baixo do h2 desalinharia */
+.painel-cabecalho h2 {
+  margin-bottom: 0;
 }
 
 /* ===========================
    BOTÃO EDITAR (tabela de alunos)
-   Usado em: painel-professor.html
-   Ação neutra — aluno já tem treino atualizado
    =========================== */
 .btn--editar {
   background: transparent;
@@ -759,8 +839,6 @@ table {
 
 /* ===========================
    BOTÃO MONTAR TREINO (tabela de alunos)
-   Usado em: painel-professor.html
-   Ação de destaque — aluno ainda sem treino
    =========================== */
 .btn--montar {
   background: var(--vermelho);
@@ -775,34 +853,29 @@ table {
 
 /* ===========================
    ABAS DE TREINO (A, B, C, D...)
-   Usado em: montar-treino.html (professor) e meu-treino.html (aluno)
+   Usado em: montar-treino.php (professor) e meu-treino.php (aluno)
    =========================== */
-
-/* Container: coloca as abas lado a lado, com espaço entre elas */
 .abas-treino {
   display: flex;
   gap: 12px;
-  flex-wrap: wrap; /* quebra linha no mobile se não couber todas */
+  flex-wrap: wrap;
 }
 
-/* Estilo base de toda aba (o "padrão", antes de saber se tá ativa ou não) */
 .aba {
   padding: 10px 20px;
   border-radius: var(--raio);
-  border: 2px solid var(--border-strong, #ddd3cc);
+  border: 2px solid var(--borda);
   font-weight: 600;
   color: var(--preto);
   background: var(--branco);
 }
 
-/* Sobrescreve o estilo base só na aba que estiver marcada como ativa */
 .aba--ativa {
   background: var(--vermelho);
   color: var(--branco);
   border-color: var(--vermelho);
 }
 
-/* Estilo do botão "+" — borda tracejada, cor apagada, sinalizando "ainda não funciona de verdade" */
 .aba--add {
   border-style: dashed;
   color: #999;
@@ -815,24 +888,19 @@ table {
 
 /* ===========================
    FORMULÁRIO DE ADICIONAR EXERCÍCIO
-   Usado em: montar-treino.html
+   Usado em: montar-treino.php
    =========================== */
-
-/* Formulário começa escondido */
 .formulario-exercicio {
   display: none;
   margin-top: 16px;
 }
 
-/* Quando ganhar a classe "ativo" (via JS), aparece */
 .formulario-exercicio.ativo {
   display: block;
 }
 
 /* ===========================
-   BOTÃO REMOVER EXERCÍCIO (tabela de treino)
-   Usado em: montar-treino.html
-   Ação de destaque — remove o exercício da tabela, não é neutro
+   BOTÃO REMOVER
    =========================== */
 .btn--remover {
   background: var(--vermelho);
@@ -847,19 +915,14 @@ table {
 
 /* ===========================
    LINHA DO FORMULÁRIO (grid de 2 colunas)
-   Usado em: montar-treino.html — agrupa campos relacionados
-   (ex: grupo+exercício, séries+repetições, carga+observação)
    =========================== */
-
-/* Estilo base: no mobile, cada linha vira 1 coluna só (campos empilhados) */
 .form-linha {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px; /* espaço entre os campos */
-  margin-bottom: 12px; /* espaço entre uma linha e a próxima */
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-/* A partir de 640px de largura de tela, cada linha vira 2 colunas lado a lado */
 @media (min-width: 640px) {
   .form-linha {
     grid-template-columns: repeat(2, 1fr);
@@ -868,13 +931,14 @@ table {
 
 /* ===========================
    CAMPOS DO FORMULÁRIO DE EXERCÍCIO
-   Usado em: montar-treino.html (professor)
    =========================== */
 .formulario-exercicio select,
-.formulario-exercicio input {
+.formulario-exercicio input,
+.form-linha input,
+.form-linha select {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #ddd3cc;
+  border: 1px solid var(--borda);
   border-radius: var(--raio);
   font-family: var(--font-corpo);
   font-size: 0.95rem;
@@ -882,22 +946,7 @@ table {
 }
 
 .formulario-exercicio select:focus,
-.formulario-exercicio input:focus {
-  outline: none;
-  border-color: var(--vermelho);
-}
-
-.form-linha input,
-.form-linha select {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #ddd3cc;
-  border-radius: var(--raio);
-  font-family: var(--font-corpo);
-  font-size: 0.95rem;
-  background: var(--branco);
-}
-
+.formulario-exercicio input:focus,
 .form-linha input:focus,
 .form-linha select:focus {
   outline: none;
@@ -906,45 +955,33 @@ table {
 
 /* ===========================
    TABELA DE TREINO DO ALUNO
-   Usado em: meu-treino.html (aluno)
+   Usado em: meu-treino.php (aluno)
    =========================== */
 .tabela-treino th {
   text-align: left;
-  padding: 12px 16px; /* respiro interno grande, deixa a tabela mais espaçosa */
-  border-bottom: 2px solid #ddd3cc; /* linha mais grossa separando cabeçalho dos dados */
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--borda);
   color: var(--preto);
-  background-color: var(--cinza-claro); /* fundo diferente do resto da tabela */
+  background-color: var(--cinza-claro);
 }
 
-/* Célula de dado (<td>): espaçamento e linha sutil entre as linhas */
 .tabela-treino td {
   text-align: left;
-
   padding: 12px 16px;
-  border-bottom: 1px solid #ddd3cc; /* linha mais fina que a do cabeçalho */
+  border-bottom: 1px solid var(--borda);
 }
 
-/* A tabela em si: ocupa toda a largura disponível */
 .tabela-treino {
-  border-collapse: separate; /* mantém as bordas "separadas" em vez de unidas numa só linha */
+  border-collapse: separate;
   width: 100%;
 }
 
 /* ===========================
-   WRAPPER DA TABELA (scroll no mobile)
-   Envolve a <table> pra permitir rolagem horizontal em telas pequenas,
-   sem quebrar o layout do resto da página
-   =========================== */
-.tabela-wrapper {
-  overflow-x: auto;
-}
-
-/* ===========================
    PAINEL: AÇÕES E FORMULÁRIO DE CADASTRO
-   Usado em: professor.php (botões lado a lado) e cadastrar-aluno.php (formulário)
    =========================== */
 .painel-acoes {
   display: flex;
+  align-items: center; /* botões e formulários alinhados no meio */
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -961,17 +998,19 @@ table {
   margin: 16px 0 6px;
 }
 
-.form-cadastro input {
+.form-cadastro input,
+.form-cadastro select {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #ddd3cc;
+  border: 1px solid var(--borda);
   border-radius: var(--raio);
   font-family: var(--font-corpo);
   font-size: 0.95rem;
   background: var(--branco);
 }
 
-.form-cadastro input:focus {
+.form-cadastro input:focus,
+.form-cadastro select:focus {
   outline: none;
   border-color: var(--vermelho);
 }
@@ -979,7 +1018,7 @@ table {
 .form-cadastro small {
   display: block;
   margin-top: 6px;
-  color: #8a8478;
+  color: var(--cinza-texto);
   font-size: 0.8rem;
 }
 
@@ -987,28 +1026,10 @@ table {
   margin-top: 24px;
 }
 
-/* Select do formulário de cadastro (mesmo visual dos inputs) */
-.form-cadastro select {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #ddd3cc;
-  border-radius: var(--raio);
-  font-family: var(--font-corpo);
-  font-size: 0.95rem;
-  background: var(--branco);
-}
-
-.form-cadastro select:focus {
-  outline: none;
-  border-color: var(--vermelho);
-}
-
 /* ===========================
    SIGLAS DE SAÚDE
    Usado em: limitacoes.php, montar-treino.php e cadastrar-aluno.php
    =========================== */
-
-/* Formulário de edição dentro da linha da tabela (campo do significado + botão Salvar) */
 .linha-edicao {
   display: flex;
   gap: 8px;
@@ -1017,10 +1038,9 @@ table {
   flex-wrap: wrap;
 }
 
-/* Campo de texto do significado, dentro da linha de edição */
 .linha-edicao input {
   padding: 10px 12px;
-  border: 1px solid #ddd3cc;
+  border: 1px solid var(--borda);
   border-radius: var(--raio);
   font-family: var(--font-corpo);
   font-size: 0.95rem;
@@ -1028,7 +1048,6 @@ table {
   min-width: 200px;
 }
 
-/* Selo vermelho arredondado que mostra a sigla (ex: PA) no Montar Treino */
 .selo-saude {
   display: inline-block;
   padding: 2px 10px;
@@ -1039,7 +1058,6 @@ table {
   font-weight: 700;
 }
 
-/* Cada caixinha de limitação no cadastro de aluno: caixa e texto lado a lado, texto normal */
 .form-cadastro .caixa-saude {
   display: flex;
   align-items: center;
@@ -1048,18 +1066,1116 @@ table {
   margin: 6px 0;
 }
 
-/* Desfaz a largura total do input só nas caixinhas de marcar */
 .form-cadastro .caixa-saude input {
   width: auto;
   padding: 0;
 }
 
+/* ===========================
+   ALERTAS (erro e sucesso)
+   Uso: <p class="alert alert--erro">...</p> ou <p class="alert alert--sucesso">...</p>
+   O ícone (! ou ✓) é desenhado pelo ::before, não precisa de imagem.
+   =========================== */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: var(--raio);
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
 
-/*formata o pdf sem o cabeçalho */
+.alert::before {
+  flex: 0 0 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--branco);
+}
+
+.alert--erro {
+  background: var(--vermelho-claro);
+  border-color: #f5c2be;
+  border-left-color: var(--vermelho);
+  color: #8f1d16;
+}
+.alert--erro::before {
+  content: "!";
+  background: var(--vermelho);
+}
+
+.alert--sucesso {
+  background: var(--verde-claro);
+  border-color: #b9dfc4;
+  border-left-color: var(--verde);
+  color: var(--verde);
+}
+.alert--sucesso::before {
+  content: "✓";
+  background: var(--verde);
+}
+
+/* ===========================
+   BADGES (status em pílula)
+   Usado em: professor.php — coluna "Treino (Status)"
+   =========================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Bolinha colorida antes do texto */
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge--ok {
+  background: var(--verde-claro);
+  color: var(--verde);
+}
+
+.badge--pendente {
+  background: var(--vermelho-claro);
+  color: var(--vermelho-escuro);
+}
+
+/* ===========================
+   ESTADO VAZIO (nenhum treino, nenhum exercício...)
+   =========================== */
+.estado-vazio {
+  text-align: center;
+  padding: 40px 24px;
+}
+.estado-vazio h3 {
+  margin-bottom: 8px;
+}
+
+/* ===========================
+   CÉLULAS ESPECIAIS DAS TABELAS
+   =========================== */
+/* Linha de detalhe embaixo do nome (ex: "Carga: 20kg") */
+.td-detalhe {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--cinza-texto);
+}
+
+/* Botões da coluna Ação centralizados no desktop */
+.td-acoes .painel-acoes {
+  justify-content: center;
+}
+
+/* Miniatura da demonstração do exercício */
+.midia-exercicio {
+  width: 120px;
+  border-radius: var(--raio);
+}
+
+/* ===========================
+   TABELA EM CARDS NO CELULAR
+   Uso: <table class="tabela-cards">, e em cada <td>:
+   - class="td-titulo"   → vira o título do card (ex: nome do aluno/exercício)
+   - data-label="Idade"  → mostra o rótulo à esquerda e o valor à direita
+   - class="td-acoes"    → botões ocupam a largura toda
+   - class="td-vazia"    → some no celular (célula sem conteúdo)
+   No desktop a tabela continua normal.
+   =========================== */
+@media (max-width: 639px) {
+  .tabela-cards,
+  .tabela-cards tbody,
+  .tabela-cards tr,
+  .tabela-cards td {
+    display: block;
+    width: 100%;
+  }
+
+  /* A 1ª linha é o cabeçalho (<th>): no celular os rótulos vêm do data-label */
+  .tabela-cards tr:first-child {
+    display: none;
+  }
+
+  .tabela-cards tr {
+    background: var(--branco);
+    border: 1px solid var(--cinza-claro);
+    border-radius: var(--raio-card);
+    padding: 4px 16px;
+    margin-bottom: 12px;
+  }
+
+  .tabela-cards td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    text-align: right;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--cinza-claro);
+  }
+
+  .tabela-cards td:last-child {
+    border-bottom: none;
+  }
+
+  .tabela-cards td[data-label]::before {
+    content: attr(data-label);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--cinza-texto);
+    text-align: left;
+  }
+
+  .tabela-cards .td-titulo {
+    display: block;
+    text-align: left;
+    font-family: var(--font-titulo);
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding-top: 14px;
+  }
+
+  .tabela-cards .td-titulo .td-detalhe {
+    font-family: var(--font-corpo);
+    font-weight: 400;
+  }
+
+  .tabela-cards .td-acoes {
+    display: block;
+  }
+
+  .tabela-cards .td-acoes form {
+    width: 100%;
+  }
+
+  .tabela-cards .td-acoes .btn {
+    flex: 1 1 0;
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .tabela-cards .td-vazia {
+    display: none;
+  }
+}
+
+/* ===========================
+   BOTÃO BLOQUEADO ("Em uso")
+   Mesmo tamanho do Excluir, pra coluna de ações ficar alinhada
+   =========================== */
+.btn--bloqueado {
+  background: var(--cinza-claro);
+  color: var(--cinza-texto);
+  min-width: 155px;
+  justify-content: center;
+  cursor: not-allowed;
+}
+
+/* ===========================
+   LAYOUT DAS TELAS DO SISTEMA (footer sempre no pé da página)
+   Uso: <body class="layout-sistema"> e o conteúdo dentro de <main>
+   =========================== */
+.layout-sistema {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-sistema main {
+  flex: 1;
+}
+
+/* ===========================
+   FOOTER DO SISTEMA (crédito EloGym)
+   =========================== */
+.footer-sistema {
+  background: var(--preto);
+  padding: 24px 0;
+  font-size: 0.85rem;
+}
+
+.footer-sistema__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.footer-sistema p {
+  color: #c9c2bc;
+}
+
+.footer-sistema strong {
+  color: var(--branco);
+}
+
+/* Nome da marca no estilo do logo: "Elo" branco e "Gym" cinza */
+.footer-sistema .footer-sistema__marca {
+  font-family: var(--font-titulo);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--branco);
+}
+
+.footer-sistema__marca span {
+  color: #9a9a9a;
+}
+
+@media (min-width: 768px) {
+  .footer-sistema__inner {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* ===========================
+   ATRIBUTO hidden SEMPRE ESCONDE
+   (sem isso, um elemento com display:flex continua aparecendo mesmo com hidden)
+   =========================== */
+[hidden] {
+  display: none !important;
+}
+
+/* ===========================
+   BOTÕES PEQUENOS E BOTÃO DE PERIGO
+   Usado em: lista de exercícios
+   =========================== */
+.btn--sm {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+/* Excluir discreto: contorno vermelho, preenche só no hover */
+.btn--perigo {
+  background: transparent;
+  color: var(--vermelho);
+  border-color: var(--vermelho);
+}
+.btn--perigo:hover {
+  background: var(--vermelho);
+  color: var(--branco);
+}
+
+/* ===========================
+   CARD "NOVO EXERCÍCIO"
+   Campos empilhados no celular; numa linha só a partir de 768px
+   =========================== */
+.form-novo h3 {
+  margin-bottom: 12px;
+}
+
+.form-novo__campos {
+  display: grid;
+  gap: 12px;
+}
+
+.form-novo__campos input,
+.form-novo__campos select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.form-novo__campos input:focus,
+.form-novo__campos select:focus {
+  outline: none;
+  border-color: var(--vermelho);
+}
+
+.form-novo__campos .btn {
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .form-novo__campos {
+    grid-template-columns: 2fr 1.4fr auto;
+  }
+}
+
+/* ===========================
+   BUSCA E FILTRO POR GRUPO
+   =========================== */
+.filtro-exercicios {
+  display: grid;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+/* Campo de busca com lupa desenhada em SVG (não precisa de imagem) */
+.campo-busca {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8478' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E")
+    no-repeat 14px center / 18px;
+}
+
+.campo-busca:focus {
+  outline: none;
+  border-color: var(--vermelho);
+}
+
+/* Botões dos grupos: no celular rolam pro lado; no desktop quebram linha */
+.filtro-grupos {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+@media (min-width: 768px) {
+  .filtro-grupos {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+
+.chip {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  background: var(--branco);
+  color: var(--preto);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--preto);
+}
+
+.chip--ativo {
+  background: var(--preto);
+  color: var(--branco);
+  border-color: var(--preto);
+}
+
+/* ===========================
+   LISTA DE EXERCÍCIOS POR GRUPO
+   =========================== */
+.grupo-exercicios {
+  margin-top: 24px;
+}
+
+.grupo-exercicios__titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.grupo-exercicios__titulo span {
+  font-family: var(--font-corpo);
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--cinza-texto);
+}
+
+.lista-exercicios.card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.item-exercicio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--cinza-claro);
+}
+
+.item-exercicio:last-child {
+  border-bottom: none;
+}
+
+.item-exercicio:hover {
+  background: var(--creme);
+}
+
+.item-exercicio__info strong {
+  display: block;
+  font-weight: 600;
+}
+
+.item-exercicio__info small {
+  font-size: 0.8rem;
+  color: var(--cinza-texto);
+}
+
+.item-exercicio__acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Na lista os botões são menores que os da tabela (os da tabela têm 155px) */
+.item-exercicio__acoes .btn {
+  min-width: 92px;
+  justify-content: center;
+}
+
+
+/* ===========================
+   SUBTÍTULO DE PÁGINA (texto pequeno embaixo do h2)
+   =========================== */
+.subtitulo {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--cinza-texto);
+}
+
+/* ===========================
+   CARD "NOVA SIGLA"
+   =========================== */
+/* Título com a prévia do selo ao lado */
+.form-novo__titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Sigla em maiúscula mesmo antes do JavaScript agir */
+#nova-sigla {
+  text-transform: uppercase;
+}
+
+/* Sigla estreita, significado largo, botão no fim */
+@media (min-width: 768px) {
+  .form-novo__campos--sigla {
+    grid-template-columns: 160px 1fr auto;
+  }
+}
+
+/* ===========================
+   LISTA DE SIGLAS
+   (usa também .lista-exercicios e .item-exercicio da tela de exercícios)
+   =========================== */
+.lista-siglas {
+  margin-top: 24px;
+}
+
+.item-sigla__principal {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Selo com largura mínima pra todas as linhas alinharem */
+.item-sigla .selo-saude {
+  min-width: 48px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.item-sigla__conteudo {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-sigla__leitura strong {
+  display: block;
+  font-weight: 600;
+}
+
+.item-sigla__leitura small {
+  font-size: 0.8rem;
+  color: var(--cinza-texto);
+}
+
+/* "Usada por X alunos": abre a lista de nomes ao clicar */
+.item-sigla summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--cinza-texto);
+  list-style: none;
+}
+.item-sigla summary::-webkit-details-marker {
+  display: none;
+}
+.item-sigla summary::after {
+  content: " ▾";
+}
+.item-sigla details[open] summary::after {
+  content: " ▴";
+}
+.item-sigla summary:hover {
+  color: var(--preto);
+}
+
+/* Nomes dos alunos em pílulas, cada uma leva pros dados do aluno */
+.lista-alunos-sigla {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.lista-alunos-sigla a {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--cinza-claro);
+  font-size: 0.8rem;
+}
+
+.lista-alunos-sigla a:hover {
+  background: var(--preto);
+  color: var(--branco);
+}
+
+/* ---- Modo edição (o JS coloca .item-sigla--editando na linha) ---- */
+.item-sigla__edicao {
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.item-sigla__edicao input[type="text"] {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px 12px;
+  border: 1px solid var(--vermelho);
+  border-radius: var(--raio);
+  font-family: var(--font-corpo);
+  font-size: 0.95rem;
+  background: var(--branco);
+}
+
+.item-sigla__edicao input[type="text"]:focus {
+  outline: none;
+}
+
+.item-sigla--editando {
+  background: var(--creme);
+}
+
+.item-sigla--editando .item-sigla__edicao {
+  display: flex;
+}
+
+.item-sigla--editando .item-sigla__leitura,
+.item-sigla--editando .item-sigla__acoes {
+  display: none;
+}
+
+/* ===========================
+   BARRA DO TREINO ABERTO (montar-treino.php)
+   Resumo à esquerda, botão "Apagar Treino" à direita
+   =========================== */
+.barra-treino {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.barra-treino span {
+  font-size: 0.9rem;
+  color: var(--cinza-texto);
+}
+
+/* ===========================
+   EDITAR EXERCÍCIO DO TREINO (montar-treino.php)
+   O JS coloca .item-treino--editando na linha
+   =========================== */
+
+/* Rótulo pequeno em cima de cada campo (o placeholder some quando o campo tem valor) */
+.campo-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cinza-texto);
+  text-align: left;
+}
+
+/* Botões Editar e Remover do mesmo tamanho */
+.item-treino__acoes .btn {
+  min-width: 110px;
+  justify-content: center;
+}
+
+.item-treino__edicao {
+  display: none;
+  text-align: left;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.item-treino__edicao h4 {
+  margin-bottom: 12px;
+}
+
+.item-treino--editando td {
+  background: var(--creme);
+}
+
+.item-treino--editando .item-treino__edicao {
+  display: block;
+}
+
+.item-treino--editando .item-treino__leitura,
+.item-treino--editando .item-treino__acoes {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  /* No celular: Editar e Remover lado a lado no card */
+  .tabela-cards .item-treino__acoes form {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  /* Em edição, some com a parte de baixo do card (os botões já estão dentro do formulário) */
+  .tabela-cards .item-treino--editando .td-acoes {
+    display: none;
+  }
+}
+
+/* ===========================
+   MEU TREINO (aluno) — cards, abas com grupos, progresso e imagem ampliada
+   =========================== */
+
+/* Só aparece no PDF (ex: nome do aluno no topo da ficha impressa) */
+.so-impressao {
+  display: none;
+}
+
+/* ---- Abas com o grupo muscular embaixo da letra ---- */
+.aba--treino {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  padding: 8px 16px;
+}
+
+.aba--treino small {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* ---- Topo do treino: título + resumo à esquerda, PDF à direita ---- */
+.treino-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 16px;
+}
+
+.treino-topo h2 {
+  margin-bottom: 0;
+}
+
+/* ---- Barra de progresso ---- */
+.progresso {
+  margin-bottom: 16px;
+}
+
+.progresso__texto {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cinza-texto);
+}
+
+.progresso__barra {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cinza-claro);
+  overflow: hidden;
+}
+
+.progresso__preenchido {
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--vermelho);
+  transition: width 0.3s ease;
+}
+
+.progresso--completo .progresso__texto {
+  color: var(--verde);
+}
+
+.progresso--completo .progresso__preenchido {
+  background: var(--verde);
+}
+
+/* ---- Lista de cards (1 coluna no celular, 2 no desktop) ---- */
+.lista-treino {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+}
+
+@media (min-width: 900px) {
+  .lista-treino {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Card: número | imagem | informações | check */
+.card-exercicio {
+  display: grid;
+  grid-template-columns: auto 72px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--branco);
+  border: 1px solid var(--cinza-claro);
+  border-radius: var(--raio-card);
+  transition: opacity 0.2s ease;
+}
+
+.card-exercicio__ordem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--preto);
+  color: var(--branco);
+  font-family: var(--font-titulo);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.card-exercicio__midia {
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border: none;
+  border-radius: var(--raio);
+  overflow: hidden;
+  background: var(--cinza-claro);
+  cursor: zoom-in;
+}
+
+.card-exercicio__midia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Sem imagem: ícone no lugar, sem clique */
+.card-exercicio__midia--vazia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  cursor: default;
+}
+
+.card-exercicio__info {
+  min-width: 0;
+}
+
+.card-exercicio__nome {
+  margin-bottom: 6px;
+  font-size: 0.98rem;
+}
+
+.card-exercicio__pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Séries e repetições */
+.pilula {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--cinza-claro);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Técnica (DROP, REST-PAUSE...) em destaque */
+.etiqueta-tecnica {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--vermelho-claro);
+  color: var(--vermelho-escuro);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.card-exercicio__carga {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--cinza-texto);
+}
+
+/* ---- Caixinha de "feito" (área de toque grande pro dedo) ---- */
+.check-feito {
+  padding: 6px;
+  cursor: pointer;
+}
+
+/* O checkbox real fica invisível; a .check-feito__caixa é o desenho */
+.check-feito__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.check-feito__caixa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--borda);
+  border-radius: 8px;
+  background: var(--branco);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.check-feito__input:checked + .check-feito__caixa {
+  background: var(--verde);
+  border-color: var(--verde);
+}
+
+.check-feito__input:checked + .check-feito__caixa::after {
+  content: "✓";
+  color: var(--branco);
+  font-weight: 800;
+}
+
+.check-feito__input:focus-visible + .check-feito__caixa {
+  outline: 3px solid var(--vermelho);
+  outline-offset: 2px;
+}
+
+/* Exercício feito: card apagadinho, nome riscado, número verde */
+.card-exercicio--feito {
+  opacity: 0.55;
+}
+
+.card-exercicio--feito .card-exercicio__nome {
+  text-decoration: line-through;
+}
+
+.card-exercicio--feito .card-exercicio__ordem {
+  background: var(--verde);
+}
+
+/* ---- Imagem ampliada (<dialog>) ---- */
+.visualizador {
+  width: 100%;
+  max-width: min(92vw, 520px);
+  margin: auto;
+  padding: 16px;
+  border: none;
+  border-radius: var(--raio-card);
+  background: var(--branco);
+}
+
+.visualizador::backdrop {
+  background: rgba(26, 26, 26, 0.75);
+}
+
+.visualizador img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--raio);
+}
+
+.visualizador p {
+  margin-top: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.visualizador__fechar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--preto);
+  color: var(--branco);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+/* Celulares estreitos: imagem um pouco menor pra sobrar espaço pras pílulas */
+@media (max-width: 420px) {
+  .card-exercicio {
+    grid-template-columns: auto 60px 1fr auto;
+    gap: 10px;
+  }
+
+  .card-exercicio__midia {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* ===========================
+   FICHA COMPLETA (PDF do meu-treino.php)
+   Fica escondida na tela; o @media print mostra
+   =========================== */
+.ficha-impressao {
+  display: none;
+}
+
+.ficha-impressao__topo {
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--preto);
+}
+
+.ficha-impressao__topo h1 {
+  font-size: 20pt;
+}
+
+.ficha-impressao__topo p {
+  font-size: 10pt;
+  color: #444444;
+}
+
+/* Cada treino não quebra no meio da página */
+.ficha-treino {
+  margin-bottom: 18px;
+  break-inside: avoid;
+}
+
+.ficha-treino h2 {
+  margin-bottom: 6px;
+  font-size: 14pt;
+}
+
+.ficha-treino h2 small {
+  font-family: var(--font-corpo);
+  font-size: 10pt;
+  font-weight: 500;
+  color: #555555;
+}
+
+.ficha-treino p {
+  font-size: 10pt;
+}
+
+/* Tabela da ficha: linhas finas, texto à esquerda (sobrescreve o th/td geral do sistema) */
+.ficha-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10pt;
+}
+
+.ficha-tabela th,
+.ficha-tabela td {
+  padding: 5px 8px;
+  border: 1px solid #cccccc;
+  text-align: left;
+  background: none;
+}
+
+.ficha-tabela th {
+  background: var(--cinza-claro);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Coluna do número, estreita e centralizada */
+.ficha-tabela th:first-child,
+.ficha-tabela td:first-child {
+  width: 28px;
+  text-align: center;
+}
+
+.ficha-impressao__rodape {
+  margin-top: 12px;
+  font-size: 8pt;
+  color: #888888;
+  text-align: center;
+}
+
+/* ===========================
+   IMPRESSÃO
+   =========================== */
+@page {
+  margin: 14mm;
+}
+
 @media print {
   .header,
   .abas-treino,
-  .btn {
+  .btn,
+  .alert,
+  .footer-sistema,
+  .visualizador {
     display: none !important;
+  }
+
+  /* No Meu Treino: esconde tudo da tela e mostra só a ficha completa */
+  main.pagina > *:not(.ficha-impressao) {
+    display: none !important;
+  }
+
+  .ficha-impressao {
+    display: block !important;
+  }
+
+  body {
+    background: none;
+  }
+
+  .pagina {
+    padding: 0;
   }
 }

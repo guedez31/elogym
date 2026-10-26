@@ -22,14 +22,15 @@ if (!$stmt->fetch()) {
   exit;
 }
 
-// Pega a maior letra que o aluno já tem (A, B...) e avança uma. Sem treino, começa no A.
-$stmt = $pdo->prepare("SELECT MAX(letra) FROM treinos WHERE alunos_id = :aluno");
+// Pega a primeira letra livre de A a F (se a professora apagou o B, o próximo criado volta a ser o B).
+$stmt = $pdo->prepare("SELECT letra FROM treinos WHERE alunos_id = :aluno");
 $stmt->execute(['aluno' => $aluno_id]);
-$ultima = $stmt->fetchColumn();
-$proxima = $ultima ? chr(ord($ultima) + 1) : 'A';
+$usadas = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$livres = array_diff(range('A', 'F'), $usadas);
+$proxima = reset($livres); // false se todas de A a F já existem
 
 // Limite de 6 treinos (A até F) pra não criar letras estranhas.
-if ($proxima > 'F') {
+if ($proxima === false) {
   header('Location: montar-treino.php?id=' . $aluno_id);
   exit;
 }
