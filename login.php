@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once "conexao.php";
+require_once "includes/layout.php";
 
 $erro = "";
 
@@ -23,20 +24,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo = 'professor';
   }
 
-  // 3. Verifica se achou o usuário E se a senha bate com o hash salvo
-  if ($usuario && password_verify($senha_digitada, $usuario['senha'])) {
+  // 3. Verifica se achou o usuário E se a senha bate com o hash salvo.
+  //    Professor desativado pelo administrador não entra (mesmo com a senha certa).
+  if ($usuario && password_verify($senha_digitada, $usuario['senha']) && $tipo === 'professor' && !$usuario['ativo']) {
+    $erro = "Seu acesso foi desativado. Fale com a administração da academia.";
+  } elseif ($usuario && password_verify($senha_digitada, $usuario['senha'])) {
     // Guarda os dados na sessão — vale pra todas as páginas depois
     $_SESSION['usuario_id'] = $usuario['id'];
     $_SESSION['usuario_nome'] = $usuario['nome'];
     $_SESSION['usuario_tipo'] = $tipo;
+    $_SESSION['usuario_admin'] = $tipo === 'professor' && !empty($usuario['admin']);
 
-    // Redireciona conforme o tipo
-    if ($tipo === 'aluno') {
-      if ($usuario['primeiro_acesso'] == 1) {
-        header('Location: trocasenha.php');
-      } else {
-        header('Location: meu-treino.php');
-      }
+    // Redireciona conforme o tipo. Primeiro acesso (aluno OU professor novo) troca a senha antes.
+    if ($usuario['primeiro_acesso'] == 1) {
+      header('Location: trocasenha.php');
+    } elseif ($tipo === 'aluno') {
+      header('Location: meu-treino.php');
     } else {
       header('Location: professor.php');
     }
@@ -49,10 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Login</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <?php head_sistema('Login'); ?>
   </head>
 
   <body>
@@ -60,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <header class="header">
       <div class="container header__inner">
         <a href="index.html" class="header__logo">AC <span>Academia</span></a>
+        <?php botao_tema(); ?>
       </div>
     </header>
 
@@ -68,6 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2>AC Academia</h2>
         <p>Entre com seu CPF e senha.</p>
         <br />
+
+        <!-- AVISO: professor desativado enquanto estava logado -->
+        <?php if (isset($_GET['desativado']) && !$erro): ?>
+          <p class="alert alert--erro">Seu acesso foi desativado. Fale com a administração da academia.</p>
+        <?php endif; ?>
 
         <!-- AVISO DE ERRO -->
         <?php if ($erro): ?>
@@ -78,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form action="login.php" method="post">
           <label for="cpf" class="sr-only">CPF</label>
           <input type="text" id="cpf" name="cpf" required placeholder="CPF"
-                 inputmode="numeric" autocomplete="username" />
+                 inputmode="numeric" maxlength="14" autocomplete="username" data-cpf />
           <br /><br />
 
           <label for="senha" class="sr-only">Senha</label>

@@ -2,12 +2,7 @@
 // Apaga um treino inteiro (a aba A, B, C...) e todos os exercícios dele.
 // Só professora logada e só via POST. Confere que o treino é mesmo do aluno informado,
 // pra ninguém apagar treino de outro aluno mexendo nos campos escondidos.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   header('Location: professor.php');

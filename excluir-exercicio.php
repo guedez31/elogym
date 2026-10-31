@@ -1,12 +1,7 @@
 <?php
 // Exclui um exercício: só professora logada e só via POST. O DELETE só acontece se o
 // exercício não estiver em nenhum treino, pra não quebrar a ficha de nenhum aluno.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   header('Location: cadastrar-exerc.php');

@@ -1,12 +1,7 @@
 <?php
 // ---------- PROTEÇÃO ----------
-// Só professora logada acessa esta página; qualquer outra pessoa volta pro login.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+// Só professor logado (e ativo) acessa esta página; o include também carrega conexão e funções.
+require_once 'includes/protecao-professor.php';
 
 // ---------- LIMITAÇÕES DISPONÍVEIS ----------
 // Busca as siglas cadastradas (viram as caixinhas) e guarda os ids válidos pra conferir o que vier do formulário.
@@ -44,8 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Confere os campos na ordem; o primeiro problema encontrado vira a mensagem de erro.
   if ($nome === '' || mb_strlen($nome) > 150) {
     $erro = "Informe o nome do aluno (até 150 caracteres).";
-  } elseif (strlen($cpf) !== 11) {
-    $erro = "O CPF precisa ter 11 números.";
+  } elseif (!cpf_valido($cpf)) {
+    // Confere os dígitos verificadores (includes/funcoes.php): pega CPF digitado errado
+    $erro = "CPF inválido. Confira os números digitados.";
   } elseif (strlen($senha) < 6) {
     $erro = "A senha temporária precisa ter pelo menos 6 caracteres.";
   } elseif (!$nascimento_ok) {
@@ -94,39 +90,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 }
+
+// ---------- TELA ----------
+require_once 'includes/layout.php';
+topo_professor('Cadastrar Aluno', 'cadastrar');
 ?>
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Cadastrar Aluno</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <!-- HEADER: logo (volta pro painel), nome da professora e botão Sair -->
-    <header class="header">
-      <div class="container header__inner">
-        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
-
-        <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
-        </nav>
-
-        <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
-
-        <button class="header__toggle" aria-label="Abrir menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
-
-    <div class="container">
       <div class="card card-formulario">
-        <!-- TÍTULO E BOTÃO VOLTAR -->
+        <!-- TÍTULO -->
         <div class="painel-cabecalho">
           <h2>Cadastrar Aluno</h2>
-          <a href="professor.php" class="btn btn--secundario">← Voltar</a>
         </div>
 
         <!-- AVISO DE ERRO DE VALIDAÇÃO -->
@@ -141,7 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <input type="text" id="nome" name="nome" value="<?= htmlspecialchars($nome) ?>" required />
 
           <label for="cpf">CPF</label>
-          <input type="text" id="cpf" name="cpf" value="<?= htmlspecialchars($cpf) ?>" placeholder="Só números" required />
+          <!-- data-cpf: o JavaScript coloca os pontos e o traço enquanto digita (o PHP tira antes de salvar) -->
+          <input type="text" id="cpf" name="cpf" value="<?= htmlspecialchars(formatar_cpf($cpf)) ?>"
+                 placeholder="000.000.000-00" inputmode="numeric" maxlength="14" data-cpf required />
 
           <!-- Data de nascimento (opcional): o campo de data não deixa escolher dia futuro -->
           <label for="data_nascimento">Data de nascimento (opcional)</label>
@@ -167,6 +141,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <button type="submit" class="btn btn--primario">Cadastrar Aluno</button>
         </form>
       </div>
-    </div>
-  </body>
-</html>
+<?php rodape_professor(); ?>

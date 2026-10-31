@@ -1,12 +1,7 @@
 <?php
 // Cria o próximo treino (A, B, C...) do aluno e volta pra tela de montar treino
 // com a aba nova aberta. Só aceita professora logada e só via POST (formulário).
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   header('Location: professor.php');
@@ -46,5 +41,13 @@ $stmt->execute([
 ]);
 
 $novo_treino = $pdo->lastInsertId();
+
+// Primeira ficha do aluno: a validade começa com 3 meses a partir de hoje
+// (a professora muda na tela de montar treino se for outro prazo).
+$stmt = $pdo->prepare("
+  UPDATE alunos SET treino_validade = DATE_ADD(:hoje, INTERVAL 3 MONTH)
+  WHERE id = :aluno AND treino_validade IS NULL
+");
+$stmt->execute(['hoje' => date('Y-m-d'), 'aluno' => $aluno_id]);
 header('Location: montar-treino.php?id=' . $aluno_id . '&treino=' . $novo_treino);
 exit;

@@ -2,12 +2,7 @@
 // Grava um exercício no treino aberto: só professora logada e só via POST. Confere
 // que o treino é mesmo do aluno e que o exercício existe, calcula a próxima posição
 // (ordem) e volta pra tela com a mesma aba aberta.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   header('Location: professor.php');

@@ -1,19 +1,23 @@
 <?php
-// Protege a página: se não houver login na sessão ou se o usuário não for
-// aluno, volta pro login e interrompe o carregamento (o exit evita que o
-// resto da página seja processado).
+// Troca de senha no PRIMEIRO ACESSO — vale pra aluno e pra professor novo.
+// Protege a página: sem login na sessão volta pro login (o exit evita que o resto rode).
 session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
+if (!isset($_SESSION['usuario_id']) || !in_array($_SESSION['usuario_tipo'] ?? '', ['aluno', 'professor'], true)) {
   header('Location: login.php');
   exit;
 }
 
-// Troca de senha do aluno em primeiro acesso: confere se as duas senhas batem e
-// têm tamanho mínimo, grava o hash novo, zera o primeiro_acesso e manda pro treino.
 require_once 'conexao.php';
+require_once 'includes/layout.php';
+
+// A tabela vem de uma lista fixa (nunca do que o usuário digitou), então é seguro colocar no SQL.
+$tabela = $_SESSION['usuario_tipo'] === 'aluno' ? 'alunos' : 'professores';
+$destino = $_SESSION['usuario_tipo'] === 'aluno' ? 'meu-treino.php' : 'professor.php';
 
 $erro = "";
 
+// Confere se as duas senhas batem e têm tamanho mínimo, grava o hash novo,
+// zera o primeiro_acesso e manda pra tela inicial de cada tipo de usuário.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nova = $_POST['nova_senha'] ?? '';
   $confirmar = $_POST['confirmar_senha'] ?? '';
@@ -23,12 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } elseif ($nova !== $confirmar) {
     $erro = "As senhas não são iguais.";
   } else {
-    $stmt = $pdo->prepare("UPDATE alunos SET senha = :senha, primeiro_acesso = 0 WHERE id = :id");
+    $stmt = $pdo->prepare("UPDATE {$tabela} SET senha = :senha, primeiro_acesso = 0 WHERE id = :id");
     $stmt->execute([
       'senha' => password_hash($nova, PASSWORD_DEFAULT),
       'id' => $_SESSION['usuario_id']
     ]);
-    header('Location: meu-treino.php');
+    header('Location: ' . $destino);
     exit;
   }
 }
@@ -36,10 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Troca de Senha</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <?php head_sistema('Troca de Senha'); ?>
   </head>
   <body>
     <div class="login-pagina">
@@ -55,10 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form action="trocasenha.php" method="post">
           <input type="password" id="nova_senha" name="nova_senha"
-                 required minlength="6" placeholder="Nova senha (mínimo 6 caracteres)" />
+                 required minlength="6" placeholder="Nova senha (mínimo 6 caracteres)" autocomplete="new-password" />
           <br /><br />
           <input type="password" id="confirmar_senha" name="confirmar_senha"
-                 required minlength="6" placeholder="Confirmar nova senha" />
+                 required minlength="6" placeholder="Confirmar nova senha" autocomplete="new-password" />
           <br /><br />
           <button type="submit" class="btn btn--primario">Confirmar Nova Senha</button>
         </form>

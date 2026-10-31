@@ -1,12 +1,7 @@
 <?php
 // ---------- PROTEÇÃO ----------
-// Só professora logada acessa esta página; qualquer outra pessoa volta pro login.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+// Só professor logado (e ativo) acessa esta página; o include também carrega conexão e funções.
+require_once 'includes/protecao-professor.php';
 
 // ---------- VARIÁVEIS DO FORMULÁRIO ----------
 // Guardam o que foi digitado, pra não perder os campos quando houver erro de validação.
@@ -89,41 +84,17 @@ $stmt = $pdo->query("
   ORDER BY l.sigla
 ");
 $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ---------- TELA ----------
+require_once 'includes/layout.php';
+topo_professor('Siglas de Saúde', 'siglas');
 ?>
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Siglas de Saúde</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body class="layout-sistema">
-    <!-- HEADER: logo (volta pro painel), nome da professora e botão Sair -->
-    <header class="header">
-      <div class="container header__inner">
-        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
-
-        <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
-        </nav>
-
-        <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
-
-        <button class="header__toggle" aria-label="Abrir menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
-
-    <main class="container pagina">
       <!-- TÍTULO, EXPLICAÇÃO E BOTÃO VOLTAR -->
       <div class="painel-cabecalho">
         <div>
           <h2>Siglas de Saúde</h2>
           <p class="subtitulo">Marcam as limitações dos alunos e aparecem como aviso no Montar Treino.</p>
         </div>
-        <a href="professor.php" class="btn btn--secundario">← Voltar para Meus Alunos</a>
       </div>
       <br />
 
@@ -229,17 +200,4 @@ $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <?php endforeach; ?>
         </ul>
       <?php endif; ?>
-    </main>
-
-    <!-- FOOTER: crédito da EloGym -->
-    <footer class="footer-sistema">
-      <div class="container footer-sistema__inner">
-        <p class="footer-sistema__marca">Elo<span>Gym</span></p>
-        <p>© <?= date('Y') ?> EloGym. Todos os direitos reservados.</p>
-        <p>Sistema de treinos desenvolvido pela EloGym para a <strong>AC Academia</strong>.</p>
-      </div>
-    </footer>
-
-    <script src="js/script.js"></script>
-  </body>
-</html>
+<?php rodape_professor(); ?>

@@ -7,14 +7,17 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'aluno') {
   exit;
 }
 require_once 'conexao.php';
+require_once 'includes/funcoes.php';
+require_once 'includes/layout.php';
 
 // ---------- PRIMEIRO ACESSO ----------
 // O aluno vem da sessão (não da URL), então ele nunca consegue ver o treino de outra pessoa.
 // Se ainda não trocou a senha temporária, manda pra troca antes de mostrar o treino.
 $aluno_id = $_SESSION['usuario_id'];
-$stmt = $pdo->prepare("SELECT primeiro_acesso FROM alunos WHERE id = :id");
+$stmt = $pdo->prepare("SELECT primeiro_acesso, treino_validade FROM alunos WHERE id = :id");
 $stmt->execute(['id' => $aluno_id]);
-if ($stmt->fetchColumn() == 1) {
+$dados_aluno = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($dados_aluno['primeiro_acesso'] == 1) {
   header('Location: trocasenha.php');
   exit;
 }
@@ -80,6 +83,21 @@ if ($treino_atual) {
   $exercicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// ---------- CHECK-IN ----------
+// Check-in de hoje (se já concluiu, mostra o aviso em vez do botão) e quantos treinos fez nos últimos 7 dias.
+$hoje = date('Y-m-d');
+$stmt = $pdo->prepare("SELECT letra, criado_em FROM checkins WHERE alunos_id = :aluno AND data = :hoje");
+$stmt->execute(['aluno' => $aluno_id, 'hoje' => $hoje]);
+$checkin_hoje = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM checkins WHERE alunos_id = :aluno AND data > :inicio");
+$stmt->execute(['aluno' => $aluno_id, 'inicio' => date('Y-m-d', strtotime('-7 days'))]);
+$treinos_semana = (int) $stmt->fetchColumn();
+
+// ---------- VALIDADE DA FICHA ----------
+// Se a validade passou, o aluno vê um aviso pra pedir ficha nova ao professor.
+$ficha_vencida = $dados_aluno['treino_validade'] && dias_ate($dados_aluno['treino_validade']) < 0;
+
 // ---------- FICHA COMPLETA (PDF) ----------
 // Busca os exercícios de TODOS os treinos do aluno de uma vez, separados por treino:
 // [id_do_treino => [exercício, exercício...]]. Só é usado na impressão.
@@ -103,10 +121,7 @@ if ($treinos) {
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Meu Treino</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <?php head_sistema('Meu Treino'); ?>
   </head>
   <body class="layout-sistema">
     <!-- HEADER: logo (volta pra tela do aluno), nome do aluno e botão Sair -->
@@ -117,6 +132,8 @@ if ($treinos) {
         <nav class="header__menu">
           <p>Bem-vindo, Aluno(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
         </nav>
+
+        <?php botao_tema(); ?>
 
         <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
 
@@ -134,6 +151,14 @@ if ($treinos) {
           <p>Fale com o seu professor pra ele montar a sua ficha.</p>
         </div>
       <?php else: ?>
+        <!-- AVISO DE FICHA VENCIDA: a validade que o professor definiu já passou -->
+        <?php if ($ficha_vencida): ?>
+          <p class="alert alert--aviso">
+            Sua ficha venceu em <?= date('d/m/Y', strtotime($dados_aluno['treino_validade'])) ?>.
+            Fale com o seu professor pra montar um treino novo.
+          </p>
+        <?php endif; ?>
+
         <!-- ABAS: letra do treino + grupos musculares (a aberta fica vermelha) -->
         <div class="abas-treino">
           <?php foreach ($treinos as $t): ?>
@@ -160,6 +185,9 @@ if ($treinos) {
               <?php endif; ?>
               <?php if ($treino_atual['data_atualizacao']): ?>
                 · atualizado em <?= date('d/m', strtotime($treino_atual['data_atualizacao'])) ?>
+              <?php endif; ?>
+              <?php if ($dados_aluno['treino_validade'] && !$ficha_vencida): ?>
+                · ficha válida até <?= date('d/m/Y', strtotime($dados_aluno['treino_validade'])) ?>
               <?php endif; ?>
             </p>
           </div>
@@ -223,6 +251,33 @@ if ($treinos) {
               </li>
             <?php endforeach; ?>
           </ol>
+
+          <!-- CHECK-IN: concluir o treino de hoje. Vai pro banco, e o professor vê na Frequência. -->
+          <?php if ($checkin_hoje): ?>
+            <div class="checkin checkin--feito">
+              <div>
+                <strong>✓ Treino de hoje concluído!</strong>
+                <span>
+                  Treino <?= htmlspecialchars($checkin_hoje['letra'] ?? '') ?> às <?= date('H:i', strtotime($checkin_hoje['criado_em'])) ?>
+                  · <?= $treinos_semana ?> <?= $treinos_semana == 1 ? 'treino' : 'treinos' ?> nos últimos 7 dias
+                </span>
+              </div>
+              <form action="concluir-treino.php" method="post" onsubmit="return confirm('Desfazer o check-in de hoje?');">
+                <input type="hidden" name="acao" value="desfazer" />
+                <input type="hidden" name="treino_id" value="<?= $treino_atual['id'] ?>" />
+                <button type="submit" class="btn btn--sm btn--editar">Desfazer</button>
+              </form>
+            </div>
+          <?php else: ?>
+            <form class="checkin" id="checkin" action="concluir-treino.php" method="post">
+              <input type="hidden" name="treino_id" value="<?= $treino_atual['id'] ?>" />
+              <div>
+                <strong>Terminou o treino?</strong>
+                <span>Marque o check-in pro seu professor acompanhar sua frequência.</span>
+              </div>
+              <button type="submit" class="btn btn--primario">Concluir Treino <?= htmlspecialchars($treino_atual['letra']) ?></button>
+            </form>
+          <?php endif; ?>
         <?php endif; ?>
       <?php endif; ?>
             <!-- FICHA COMPLETA PRA IMPRESSÃO: escondida na tela, só aparece no PDF.
