@@ -2,12 +2,7 @@
 // Remove um exercício do treino: só professora logada e só via POST. O DELETE só acontece se a linha
 // de treino_exercicios pertencer a um treino do aluno informado (o JOIN impede apagar item de outro
 // aluno mexendo nos campos escondidos).
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   header('Location: professor.php');

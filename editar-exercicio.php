@@ -1,12 +1,7 @@
 <?php
 // Edição de exercício pela professora: carrega o exercício pelo ?id=, confere nome e
 // grupo, impede repetir o mesmo nome no mesmo grupo e atualiza o registro.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 
@@ -54,34 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 }
+
+// ---------- TELA ----------
+require_once 'includes/layout.php';
+topo_professor('Editar Exercício', 'exercicios');
 ?>
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Editar Exercício</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <!-- HEADER -->
-    <header class="header">
-      <div class="container header__inner">
-        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
-
-        <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
-        </nav>
-
-        <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
-
-        <button class="header__toggle" aria-label="Abrir menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
-
-    <div class="container">
       <div class="card card-formulario">
         <div class="painel-cabecalho">
           <h2>Editar Exercício</h2>
@@ -110,6 +82,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <button type="submit" class="btn btn--primario">Salvar alterações</button>
         </form>
       </div>
-    </div>
-  </body>
-</html>
+<?php rodape_professor(); ?>

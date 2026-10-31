@@ -1,18 +1,14 @@
 <?php
 // ---------- PROTEÇÃO ----------
-// Só professora logada acessa esta página; qualquer outra pessoa volta pro login.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+// Só professor logado (e ativo) acessa esta página; o include também carrega conexão e funções.
+require_once 'includes/protecao-professor.php';
+require_once 'includes/layout.php';
 
 // ---------- ALUNO ----------
 // Lê o id do aluno vindo da URL (?id=) e busca o nome dele; se o id for inválido, volta pro painel.
 $aluno_id = (int) ($_GET['id'] ?? 0);
 
-$stmt = $pdo->prepare("SELECT id, nome FROM alunos WHERE id = :id");
+$stmt = $pdo->prepare("SELECT id, nome, treino_validade FROM alunos WHERE id = :id");
 $stmt->execute(['id' => $aluno_id]);
 $aluno = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -35,10 +31,13 @@ $limitacoes_aluno = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ---------- TREINOS (ABAS A, B, C...) ----------
 // Carrega os treinos ativos do aluno; cada um vira uma aba.
+// O total de exercícios marca as abas vazias (que deixam o aluno "Em andamento").
 $stmt = $pdo->prepare("
-  SELECT id, letra FROM treinos
-  WHERE alunos_id = :aluno AND ativo = 1
-  ORDER BY letra
+  SELECT t.id, t.letra,
+         (SELECT COUNT(*) FROM treino_exercicios te WHERE te.treinos_id = t.id) AS total_exercicios
+  FROM treinos t
+  WHERE t.alunos_id = :aluno AND t.ativo = 1
+  ORDER BY t.letra
 ");
 $stmt->execute(['aluno' => $aluno['id']]);
 $treinos = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -68,6 +67,11 @@ if ($treino_atual) {
   $exercicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// ---------- STATUS DA FICHA ----------
+// Mesmo cálculo do painel: Sem treino / Em andamento / Em dia / Vence logo / Vencido
+$vazios = count(array_filter($treinos, fn($t) => $t['total_exercicios'] == 0));
+$status = status_treino(count($treinos), $vazios, $aluno['treino_validade']);
+
 // ---------- OPÇÕES DO FORMULÁRIO DE ADICIONAR ----------
 // Busca os grupos musculares e os exercícios organizados por grupo, pros dois selects em cascata.
 $grupos = $pdo->query("SELECT id, nome FROM grupo_muscular ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
@@ -77,38 +81,19 @@ $lista = $pdo->query("SELECT id, nome, grupo_muscular_id FROM exercicios ORDER B
 foreach ($lista as $e) {
   $exercicios_por_grupo[$e['grupo_muscular_id']][] = ['id' => $e['id'], 'nome' => $e['nome']];
 }
+
+topo_professor('Montar Treino', 'alunos');
 ?>
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Montar Treino</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <!-- HEADER: logo (volta pro painel), nome da professora e botão Sair (igual às outras telas) -->
-    <header class="header">
-      <div class="container header__inner">
-        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
-
-        <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
-        </nav>
-
-        <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
-
-        <button class="header__toggle" aria-label="Abrir menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
-
-    <main class="container pagina">
       <!-- TÍTULO COM O NOME DO ALUNO E BOTÃO VOLTAR -->
       <div class="painel-cabecalho">
-        <h2>Treino de <?= htmlspecialchars($aluno['nome']) ?></h2>
-        <a href="professor.php" class="btn btn--secundario">← Voltar</a>
+        <div>
+          <h2>Treino de <?= htmlspecialchars($aluno['nome']) ?></h2>
+          <span class="badge badge--<?= $status['classe'] ?>"><?= $status['texto'] ?></span>
+        </div>
+        <div class="painel-acoes">
+          <a href="frequencia.php?id=<?= $aluno['id'] ?>" class="btn btn--sm btn--editar">Frequência</a>
+          <a href="professor.php" class="btn btn--sm btn--secundario">← Voltar</a>
+        </div>
       </div>
 
       <!-- AVISO DE LIMITAÇÕES: só aparece se o aluno tem alguma sigla -->
@@ -130,15 +115,47 @@ foreach ($lista as $e) {
       <?php if (isset($_GET['editado'])): ?>
         <p class="alert alert--sucesso">Exercício atualizado!</p>
       <?php endif; ?>
+      <?php if (isset($_GET['validade'])): ?>
+        <p class="alert alert--sucesso">Validade da ficha atualizada!</p>
+      <?php endif; ?>
+      <?php if (isset($_GET['erro_validade'])): ?>
+        <p class="alert alert--erro">Escolha uma data de validade que ainda não passou.</p>
+      <?php endif; ?>
       <?php if (isset($_GET['erro_edicao'])): ?>
         <p class="alert alert--erro">Informe pelo menos 1 série e as repetições.</p>
+      <?php endif; ?>
+
+      <!-- VALIDADE DA FICHA: a professora monta o treino pra 3 ou 4 meses; depois disso aparece "Vencido" no painel.
+           Os botões rápidos contam a partir de HOJE (use quando montar uma ficha nova). -->
+      <?php if ($treinos): ?>
+        <form class="validade-ficha validade-ficha--<?= $status['chave'] ?>" action="salvar-validade.php" method="post">
+          <input type="hidden" name="aluno_id" value="<?= $aluno['id'] ?>" />
+          <div class="validade-ficha__info">
+            <strong>Validade da ficha</strong>
+            <span><?= htmlspecialchars(texto_validade($aluno['treino_validade'])) ?></span>
+          </div>
+          <!-- "Salvar data" vem primeiro no código porque o Enter dentro do campo de data usa o 1º botão do formulário.
+               formnovalidate: os botões de meses funcionam mesmo se o campo de data estiver vazio. -->
+          <div class="validade-ficha__acoes">
+            <label class="validade-ficha__data">
+              <span class="sr-only">Válida até</span>
+              <input type="date" name="data" min="<?= date('Y-m-d') ?>" required
+                     value="<?= $aluno['treino_validade'] >= date('Y-m-d') ? htmlspecialchars($aluno['treino_validade']) : '' ?>" />
+            </label>
+            <button type="submit" name="meses" value="0" class="btn btn--sm btn--primario">Salvar data</button>
+            <span class="validade-ficha__ou">ou renovar:</span>
+            <button type="submit" name="meses" value="3" class="btn btn--sm btn--editar" formnovalidate>+3 meses</button>
+            <button type="submit" name="meses" value="4" class="btn btn--sm btn--editar" formnovalidate>+4 meses</button>
+          </div>
+        </form>
       <?php endif; ?>
 
       <!-- ABAS DE TREINO: uma por treino do aluno (a aberta fica vermelha) e o "+" que cria o próximo -->
       <div class="abas-treino">
         <?php foreach ($treinos as $t): ?>
           <a href="montar-treino.php?id=<?= $aluno['id'] ?>&treino=<?= $t['id'] ?>"
-             class="aba <?= $t['id'] == ($treino_atual['id'] ?? 0) ? 'aba--ativa' : '' ?>">
+             class="aba <?= $t['id'] == ($treino_atual['id'] ?? 0) ? 'aba--ativa' : '' ?> <?= $t['total_exercicios'] == 0 ? 'aba--vazia' : '' ?>"
+             <?= $t['total_exercicios'] == 0 ? 'title="Treino ainda sem exercício"' : '' ?>>
             Treino <?= htmlspecialchars($t['letra']) ?>
           </a>
         <?php endforeach; ?>
@@ -290,12 +307,6 @@ foreach ($lista as $e) {
           <button type="submit" class="btn btn--primario">+ Salvar Exercício</button>
         </form>
       <?php endif; ?>
-    </main>
-
-    <!-- LISTA DE EXERCÍCIOS POR GRUPO: o PHP entrega pro JavaScript (precisa vir antes do script.js) -->
-    <script>
-      const exerciciosPorGrupo = <?= json_encode($exercicios_por_grupo, JSON_HEX_TAG) ?>;
-    </script>
-    <script src="js/script.js"></script>
-  </body>
-</html>
+<?php
+// LISTA DE EXERCÍCIOS POR GRUPO: o PHP entrega pro JavaScript (precisa vir antes do script.js)
+rodape_professor('<script>const exerciciosPorGrupo = ' . json_encode($exercicios_por_grupo, JSON_HEX_TAG) . ';</script>');

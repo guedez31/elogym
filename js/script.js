@@ -361,3 +361,76 @@ if (fichaImpressao) {
     document.title = tituloOriginal;
   });
 }
+
+// ===========================
+// MENU LATERAL DO PROFESSOR (celular)
+// ===========================
+// O hambúrguer continua usando o código do MENU MOBILE lá em cima (classe "header--aberto");
+// o CSS usa essa classe pra deslizar o menu lateral. Aqui só fecha ao tocar no fundo escuro.
+const fundoMenu = document.querySelector("[data-fechar-menu]");
+
+if (fundoMenu && header && botaoMenu) {
+  fundoMenu.addEventListener("click", function () {
+    header.classList.remove("header--aberto");
+    botaoMenu.setAttribute("aria-expanded", "false");
+    botaoMenu.setAttribute("aria-label", "Abrir menu");
+  });
+}
+
+// ===========================
+// MODO ESCURO (todas as telas do sistema)
+// ===========================
+// O tema certo já é aplicado no <head> (includes/layout.php), antes da página aparecer.
+// Aqui o botão sol/lua troca o tema e guarda a escolha no navegador.
+document.querySelectorAll("[data-tema-toggle]").forEach(function (botaoTema) {
+  botaoTema.addEventListener("click", function () {
+    const raiz = document.documentElement;
+    const escuro = raiz.getAttribute("data-tema") !== "escuro";
+
+    if (escuro) {
+      raiz.setAttribute("data-tema", "escuro");
+    } else {
+      raiz.removeAttribute("data-tema");
+    }
+
+    try {
+      localStorage.setItem("tema", escuro ? "escuro" : "claro");
+    } catch (erro) {}
+  });
+});
+
+// ===========================
+// MÁSCARA DE CPF (login, cadastro de aluno e de professor)
+// ===========================
+// Em qualquer campo com o atributo data-cpf: deixa só números e coloca os pontos e o traço
+// enquanto a pessoa digita (52998224725 → 529.982.247-25). O PHP tira a pontuação antes de salvar.
+document.querySelectorAll("[data-cpf]").forEach(function (campoCpf) {
+  function mascarar() {
+    const n = campoCpf.value.replace(/\D/g, "").slice(0, 11);
+    let texto = n.slice(0, 3);
+    if (n.length > 3) texto += "." + n.slice(3, 6);
+    if (n.length > 6) texto += "." + n.slice(6, 9);
+    if (n.length > 9) texto += "-" + n.slice(9, 11);
+    campoCpf.value = texto;
+  }
+
+  campoCpf.addEventListener("input", mascarar);
+  mascarar(); // caso a página volte com erro e o campo já tenha valor
+});
+
+// ===========================
+// MEU TREINO: DESTACAR O CHECK-IN QUANDO TERMINAR TUDO
+// ===========================
+// Quando o aluno marca o último exercício, o botão "Concluir Treino" ganha destaque e aparece na tela.
+const formCheckin = document.getElementById("checkin");
+
+if (formCheckin && listaTreino) {
+  listaTreino.addEventListener("change", function () {
+    const total = listaTreino.querySelectorAll(".card-exercicio").length;
+    const feitos = listaTreino.querySelectorAll(".card-exercicio--feito").length;
+    const completo = total > 0 && feitos === total;
+
+    formCheckin.classList.toggle("checkin--pronto", completo);
+    if (completo) formCheckin.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}

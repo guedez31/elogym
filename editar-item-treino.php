@@ -2,12 +2,7 @@
 // Edita um exercício que já está no treino (séries, repetições, carga e observação),
 // sem precisar remover e adicionar de novo. Só professora logada e só via POST.
 // Confere que o item pertence a um treino do aluno informado, pra ninguém editar treino de outro aluno.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   header('Location: professor.php');

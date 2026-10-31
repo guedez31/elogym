@@ -1,12 +1,7 @@
 <?php
 // ---------- PROTEÇÃO ----------
-// Só professora logada acessa esta página; qualquer outra pessoa volta pro login.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+// Só professor logado (e ativo) acessa esta página; o include também carrega conexão e funções.
+require_once 'includes/protecao-professor.php';
 
 // ---------- ALUNO ----------
 // Lê o id do aluno (?id= na URL ou campo escondido do formulário) e busca os dados dele; se não existir, volta pro painel.
@@ -104,34 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 }
+
+// ---------- TELA ----------
+require_once 'includes/layout.php';
+topo_professor('Editar Aluno', 'alunos');
 ?>
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Editar Aluno</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <!-- HEADER: logo (volta pro painel), nome da professora e botão Sair -->
-    <header class="header">
-      <div class="container header__inner">
-        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
-
-        <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
-        </nav>
-
-        <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
-
-        <button class="header__toggle" aria-label="Abrir menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
-
-    <div class="container">
       <!-- FORMULÁRIO 1: DADOS DO ALUNO -->
       <div class="card card-formulario">
         <div class="painel-cabecalho">
@@ -156,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
           <!-- CPF só para consulta: é com ele que o aluno entra no sistema, então não muda aqui -->
           <label for="cpf">CPF</label>
-          <input type="text" id="cpf" value="<?= htmlspecialchars($aluno['cpf']) ?>" disabled />
+          <input type="text" id="cpf" value="<?= htmlspecialchars(formatar_cpf($aluno['cpf'])) ?>" disabled />
 
           <label for="data_nascimento">Data de nascimento (opcional)</label>
           <input type="date" id="data_nascimento" name="data_nascimento"
@@ -200,6 +172,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <button type="submit" class="btn btn--primario">Redefinir senha</button>
         </form>
       </div>
-    </div>
-  </body>
-</html>
+<?php rodape_professor(); ?>

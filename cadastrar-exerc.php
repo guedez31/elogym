@@ -2,12 +2,7 @@
 // Cadastro de exercícios pela professora: confere nome e grupo (que precisa existir),
 // impede repetir o mesmo nome no mesmo grupo, grava e recarrega com aviso. Também busca
 // os grupos pro select e a lista de exercícios, separada por grupo, com quantos treinos usam cada um.
-session_start();
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'professor') {
-  header('Location: login.php');
-  exit;
-}
-require_once 'conexao.php';
+require_once 'includes/protecao-professor.php';
 
 $erro = "";
 $nome = "";
@@ -59,38 +54,14 @@ $por_grupo = [];
 foreach ($lista as $ex) {
   $por_grupo[$ex['grupo']][] = $ex;
 }
+
+// ---------- TELA ----------
+require_once 'includes/layout.php';
+topo_professor('Exercícios', 'exercicios');
 ?>
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AC Academia — Exercícios</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body class="layout-sistema">
-    <!-- HEADER -->
-    <header class="header">
-      <div class="container header__inner">
-        <a href="professor.php" class="header__logo">AC <span>Academia</span></a>
-
-        <nav class="header__menu">
-          <p>Bem-vindo, Professor(a) <?= htmlspecialchars($_SESSION['usuario_nome']) ?></p>
-        </nav>
-
-        <a href="logout.php" class="btn btn--primario header__cta">Sair</a>
-
-        <button class="header__toggle" aria-label="Abrir menu">
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
-
-    <main class="container pagina">
       <!-- TÍTULO E BOTÃO VOLTAR -->
       <div class="painel-cabecalho">
         <h2>Exercícios</h2>
-        <a href="professor.php" class="btn btn--secundario">← Voltar para Meus Alunos</a>
       </div>
       <br />
 
@@ -196,17 +167,4 @@ foreach ($lista as $ex) {
           <p>Tente outro nome ou escolha "Todos".</p>
         </div>
       <?php endif; ?>
-    </main>
-
-    <!-- FOOTER: crédito da EloGym -->
-    <footer class="footer-sistema">
-      <div class="container footer-sistema__inner">
-        <p class="footer-sistema__marca">Elo<span>Gym</span></p>
-        <p>© <?= date('Y') ?> EloGym. Todos os direitos reservados.</p>
-        <p>Sistema de treinos desenvolvido pela EloGym para a <strong>AC Academia</strong>.</p>
-      </div>
-    </footer>
-
-    <script src="js/script.js"></script>
-  </body>
-</html>
+<?php rodape_professor(); ?>
