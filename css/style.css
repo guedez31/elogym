@@ -3004,3 +3004,10 @@ a.resumo-card:hover {
     background: var(--texto);
   }
 }
+
+/* Validação de CPF em tempo real */
+.cpf-feedback { display: block; font-size: 0.8rem; margin-top: 0.25rem; }
+.cpf-feedback--ok   { color: var(--cor-sucesso, #22c55e); }
+.cpf-feedback--erro { color: var(--cor-erro, #ef4444); }
+input.cpf--valido   { border-color: var(--cor-sucesso, #22c55e); }
+input.cpf--invalido { border-color: var(--cor-erro, #ef4444); }
