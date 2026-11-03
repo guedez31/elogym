@@ -115,7 +115,7 @@ topo_professor('Cadastrar Aluno', 'cadastrar');
           <label for="cpf">CPF</label>
           <!-- data-cpf: o JavaScript coloca os pontos e o traço enquanto digita (o PHP tira antes de salvar) -->
           <input type="text" id="cpf" name="cpf" value="<?= htmlspecialchars(formatar_cpf($cpf)) ?>"
-                 placeholder="000.000.000-00" inputmode="numeric" maxlength="14" data-cpf required />
+          placeholder="000.000.000-00" inputmode="numeric" maxlength="14" data-cpf data-cpf-validar required />
 
           <!-- Data de nascimento (opcional): o campo de data não deixa escolher dia futuro -->
           <label for="data_nascimento">Data de nascimento (opcional)</label>
