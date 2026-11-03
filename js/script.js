@@ -434,3 +434,49 @@ if (formCheckin && listaTreino) {
     if (completo) formCheckin.scrollIntoView({ behavior: "smooth", block: "center" });
   });
 }
+
+// ===========================
+// VALIDAÇÃO DE CPF EM TEMPO REAL (cadastro de aluno e de professor)
+// ===========================
+// Confere os dígitos verificadores enquanto a pessoa digita.
+// Só valida quando tiver 11 números (CPF completo); antes disso não mostra erro.
+document.querySelectorAll("[data-cpf]").forEach(function (campoCpf) {
+  const feedback = document.createElement("span");
+  feedback.className = "cpf-feedback";
+  feedback.setAttribute("aria-live", "polite");
+  campoCpf.insertAdjacentElement("afterend", feedback);
+
+  function cpfValido(cpf) {
+    cpf = cpf.replace(/\D/g, "");
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+
+    let soma = 0;
+    for (let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+    let d1 = (soma * 10) % 11;
+    if (d1 === 10 || d1 === 11) d1 = 0;
+    if (d1 !== parseInt(cpf[9])) return false;
+
+    soma = 0;
+    for (let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+    let d2 = (soma * 10) % 11;
+    if (d2 === 10 || d2 === 11) d2 = 0;
+    return d2 === parseInt(cpf[10]);
+  }
+
+  function validar() {
+    const numeros = campoCpf.value.replace(/\D/g, "");
+    if (numeros.length < 11) {
+      feedback.textContent = "";
+      campoCpf.classList.remove("cpf--valido", "cpf--invalido");
+      return;
+    }
+    const valido = cpfValido(numeros);
+    feedback.textContent = valido ? "✓ CPF válido" : "✗ CPF inválido";
+    feedback.className = "cpf-feedback " + (valido ? "cpf-feedback--ok" : "cpf-feedback--erro");
+    campoCpf.classList.toggle("cpf--valido", valido);
+    campoCpf.classList.toggle("cpf--invalido", !valido);
+  }
+
+  campoCpf.addEventListener("input", validar);
+  validar();
+});

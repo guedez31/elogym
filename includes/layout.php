@@ -15,6 +15,7 @@ function head_sistema(string $titulo): void { ?>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AC Academia — <?= htmlspecialchars($titulo) ?></title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <link rel="stylesheet" href="css/style.css" />
   <!-- MODO ESCURO: roda antes da página aparecer, pra não piscar branco.
        Usa a escolha salva; se a pessoa nunca escolheu, segue o tema do celular/computador. -->

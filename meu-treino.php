@@ -84,10 +84,10 @@ if ($treino_atual) {
 }
 
 // ---------- CHECK-IN ----------
-// Check-in de hoje (se já concluiu, mostra o aviso em vez do botão) e quantos treinos fez nos últimos 7 dias.
+// Confere o check-in do treino aberto hoje (aluno pode ter feito outro treino hoje também).
 $hoje = date('Y-m-d');
-$stmt = $pdo->prepare("SELECT letra, criado_em FROM checkins WHERE alunos_id = :aluno AND data = :hoje");
-$stmt->execute(['aluno' => $aluno_id, 'hoje' => $hoje]);
+$stmt = $pdo->prepare("SELECT letra, criado_em FROM checkins WHERE alunos_id = :aluno AND treinos_id = :treino AND data = :hoje");
+$stmt->execute(['aluno' => $aluno_id, 'treino' => $treino_atual['id'] ?? 0, 'hoje' => $hoje]);
 $checkin_hoje = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM checkins WHERE alunos_id = :aluno AND data > :inicio");

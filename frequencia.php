@@ -36,10 +36,13 @@ if ($aluno_id) {
   $mes_seguinte = (clone $primeiro_dia)->modify('+1 month')->format('Y-m');
 
   // ---------- CHECK-INS DO MÊS ----------
-  // Vira um "mapa" data → letra do treino, pra cada quadradinho do calendário saber se tem treino.
+  // Vira um "mapa" data → letras do dia (ex: "AB" se fez Treino A e B no mesmo dia).
+  // GROUP_CONCAT agrupa as letras de cada dia numa string só, ordenadas pela letra.
   $stmt = $pdo->prepare("
-    SELECT data, letra FROM checkins
+    SELECT data, GROUP_CONCAT(letra ORDER BY letra SEPARATOR '') AS letras
+    FROM checkins
     WHERE alunos_id = :aluno AND data BETWEEN :inicio AND :fim
+    GROUP BY data
   ");
   $stmt->execute([
     'aluno' => $aluno_id,
@@ -48,7 +51,7 @@ if ($aluno_id) {
   ]);
   $treinou = [];
   foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $c) {
-    $treinou[$c['data']] = $c['letra'] ?: '✓';
+    $treinou[$c['data']] = $c['letras'] ?: '✓';
   }
 
   // ---------- NÚMEROS DO ALUNO ----------
