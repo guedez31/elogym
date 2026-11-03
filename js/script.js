@@ -440,7 +440,7 @@ if (formCheckin && listaTreino) {
 // ===========================
 // Confere os dígitos verificadores enquanto a pessoa digita.
 // Só valida quando tiver 11 números (CPF completo); antes disso não mostra erro.
-document.querySelectorAll("[data-cpf]").forEach(function (campoCpf) {
+document.querySelectorAll("[data-cpf-validar]").forEach(function (campoCpf) {
   const feedback = document.createElement("span");
   feedback.className = "cpf-feedback";
   feedback.setAttribute("aria-live", "polite");
