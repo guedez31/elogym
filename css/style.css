@@ -2488,22 +2488,13 @@ table {
   border-radius: var(--raio-card);
   background: var(--superficie);
   border: 2px solid transparent;
-  border-left: 4px solid var(--borda);
   box-shadow: 0 2px 10px rgba(26, 26, 26, 0.06);
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 a.resumo-card:hover {
   transform: translateY(-2px);
 }
-.resumo-card--ok {
-  border-left-color: var(--verde);
-}
-.resumo-card--andamento {
-  border-left-color: var(--amarelo);
-}
-.resumo-card--vencido {
-  border-left-color: var(--vermelho);
-}
+
 .resumo-card--ativo {
   border-color: var(--texto);
 }
@@ -2537,7 +2528,7 @@ a.resumo-card:hover {
 
 .td-validade {
   font-size: 0.85rem;
-  color: var(--cinza-texto);
+  /*color: var(--cinza-texto);*/ 
 }
 .td-validade--vencido {
   color: var(--vermelho-escuro);
