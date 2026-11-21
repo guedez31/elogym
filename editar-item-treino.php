@@ -1,7 +1,8 @@
 <?php
-// Edita um exercício que já está no treino (séries, repetições, carga e observação),
-// sem precisar remover e adicionar de novo. Só professora logada e só via POST.
-// Confere que o item pertence a um treino do aluno informado, pra ninguém editar treino de outro aluno.
+// Edita um exercício que já está no treino: TROCA o exercício (ex: Supino Reto → Supino Inclinado)
+// e muda séries, repetições, carga e observação, sem precisar remover e adicionar de novo.
+// Só professora logada e só via POST. Confere que o item pertence a um treino do aluno informado,
+// pra ninguém editar treino de outro aluno. A posição (ordem) do exercício na ficha não muda.
 require_once 'includes/protecao-professor.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -13,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $aluno_id = (int) ($_POST['aluno_id'] ?? 0);
 $treino_id = (int) ($_POST['treino_id'] ?? 0);
 $item_id = (int) ($_POST['item_id'] ?? 0);
+$exercicio_id = (int) ($_POST['exercicio_id'] ?? 0);
 $series = (int) ($_POST['series'] ?? 0);
 $repeticoes = mb_substr(trim($_POST['repeticoes'] ?? ''), 0, 45);
 $carga = mb_substr(trim($_POST['carga'] ?? ''), 0, 45);
@@ -34,17 +36,24 @@ if (!$stmt->fetch()) {
   exit;
 }
 
-if ($series < 1 || $repeticoes === '') {
+// O exercício escolhido existe no catálogo?
+$stmt = $pdo->prepare("SELECT id FROM exercicios WHERE id = :id");
+$stmt->execute(['id' => $exercicio_id]);
+$exercicio_ok = $stmt->fetch();
+
+if (!$exercicio_ok || $series < 1 || $repeticoes === '') {
   header('Location: ' . $voltar . '&erro_edicao=1');
   exit;
 }
 
 $stmt = $pdo->prepare("
   UPDATE treino_exercicios
-  SET series = :series, repeticoes = :repeticoes, carga = :carga, observacao = :observacao
+  SET exercicios_id = :exercicio, series = :series, repeticoes = :repeticoes,
+      carga = :carga, observacao = :observacao
   WHERE id = :item
 ");
 $stmt->execute([
+  'exercicio' => $exercicio_id,
   'series' => $series,
   'repeticoes' => $repeticoes,
   'carga' => $carga !== '' ? $carga : null,
