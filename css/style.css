@@ -775,6 +775,23 @@ p {
   text-underline-offset: 3px;
 }
 
+/* "Esqueci minha senha" (login.php): o <summary> parece link e abre o aviso embaixo */
+.esqueci-senha summary {
+  cursor: pointer;
+  list-style: none;
+}
+.esqueci-senha summary::-webkit-details-marker {
+  display: none;
+}
+.esqueci-senha p {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: var(--raio);
+  background: var(--cinza-claro);
+  font-size: 0.9rem;
+  color: var(--texto);
+}
+
 .link-secundario:hover {
   color: var(--vermelho);
 }

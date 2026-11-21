@@ -29,6 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($usuario && password_verify($senha_digitada, $usuario['senha']) && $tipo === 'professor' && !$usuario['ativo']) {
     $erro = "Seu acesso foi desativado. Fale com a administração da academia.";
   } elseif ($usuario && password_verify($senha_digitada, $usuario['senha'])) {
+    // Gera um ID de sessão novo a cada login: impede que alguém "plante" um ID de sessão
+    // antes (fixação de sessão) e continue logado junto com o usuário depois que ele entra.
+    session_regenerate_id(true);
+
     // Guarda os dados na sessão — vale pra todas as páginas depois
     $_SESSION['usuario_id'] = $usuario['id'];
     $_SESSION['usuario_nome'] = $usuario['nome'];
@@ -95,10 +99,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <button type="submit" class="btn btn--primario">Entrar</button>
         </form>
 
-        <a href="#" class="link-secundario">Esqueci minha senha</a>
+        <!-- ESQUECI MINHA SENHA: não há envio por e-mail; quem redefine é o professor
+             (editar-aluno.php) ou o administrador (professores.php). Clicar abre o aviso. -->
+        <details class="esqueci-senha">
+          <summary class="link-secundario">Esqueci minha senha</summary>
+          <p>Fale com o seu professor ou com a recepção da academia. Eles redefinem a sua senha na hora, e você cria uma nova no próximo acesso.</p>
+        </details>
       </div>
     </div>
 
     <script src="js/script.js"></script>
   </body>
-</html>
+</html>
