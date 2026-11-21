@@ -208,15 +208,38 @@ if (itensSigla.length > 0) {
 }
 
 // ===========================
-// EDITAR EXERCÍCIO DO TREINO (só existe no Montar Treino)
+// EDITAR / TROCAR EXERCÍCIO DO TREINO (só existe no Montar Treino)
 // ===========================
-// "Editar" troca só aquela linha pro formulário (séries, repetições, carga, observação).
+// "Editar" troca só aquela linha pro formulário (exercício, séries, repetições, carga, observação).
 // "Cancelar" (ou Esc) desfaz o que foi digitado: o form.reset() volta os campos pros valores originais.
+
+// Refaz a lista do select de exercícios conforme o grupo escolhido.
+// "selecionado" é o exercício que já estava no treino: se ele estiver na lista, já vem marcado.
+function preencherExercicios(selectExercicio, grupoId, selecionado) {
+  selectExercicio.innerHTML = '<option value="">Selecione um exercício</option>';
+  const lista = (typeof exerciciosPorGrupo !== "undefined" && exerciciosPorGrupo[grupoId]) || [];
+  lista.forEach(function (ex) {
+    const opcao = document.createElement("option");
+    opcao.value = ex.id;
+    opcao.textContent = ex.nome;
+    if (String(ex.id) === String(selecionado)) opcao.selected = true;
+    selectExercicio.appendChild(opcao);
+  });
+}
+
 const itensTreino = document.querySelectorAll(".item-treino");
 
 if (itensTreino.length > 0) {
   function fecharEdicaoTreino(item) {
     item.querySelector(".item-treino__edicao").reset();
+
+    // O reset volta o grupo pro original, mas a lista de exercícios pode ter sido trocada: refaz
+    const selectGrupo = item.querySelector("[data-troca-grupo]");
+    const selectExercicio = item.querySelector("[data-troca-exercicio]");
+    if (selectGrupo && selectExercicio) {
+      preencherExercicios(selectExercicio, selectGrupo.value, selectExercicio.dataset.original);
+    }
+
     item.classList.remove("item-treino--editando");
   }
 
@@ -238,6 +261,15 @@ if (itensTreino.length > 0) {
     item.querySelector(".item-treino__edicao").addEventListener("keydown", function (evento) {
       if (evento.key === "Escape") fecharEdicaoTreino(item);
     });
+
+    // Trocou o grupo muscular: refaz a lista de exercícios daquele grupo
+    const selectGrupo = item.querySelector("[data-troca-grupo]");
+    const selectExercicio = item.querySelector("[data-troca-exercicio]");
+    if (selectGrupo && selectExercicio) {
+      selectGrupo.addEventListener("change", function () {
+        preencherExercicios(selectExercicio, selectGrupo.value, selectExercicio.dataset.original);
+      });
+    }
   });
 }
 
@@ -480,3 +512,23 @@ document.querySelectorAll("[data-cpf-validar]").forEach(function (campoCpf) {
   campoCpf.addEventListener("input", validar);
   validar();
 });
+
+// ===========================
+// CONTATO PELO WHATSAPP (só existe no contato.html)
+// ===========================
+// Em vez de mandar pro servidor, monta o texto com o nome e a mensagem e abre
+// o WhatsApp da academia (wa.me) numa aba nova. O número fica no data-whatsapp do form.
+const formWhatsapp = document.getElementById("form-whatsapp");
+
+if (formWhatsapp) {
+  formWhatsapp.addEventListener("submit", function (evento) {
+    evento.preventDefault();
+
+    const nome = formWhatsapp.elements["nome"].value.trim();
+    const mensagem = formWhatsapp.elements["mensagem"].value.trim();
+    const texto = "Olá! Meu nome é " + nome + ".\n\n" + mensagem + "\n\n(Mensagem enviada pelo site)";
+
+    const link = "https://wa.me/" + formWhatsapp.dataset.whatsapp + "?text=" + encodeURIComponent(texto);
+    window.open(link, "_blank", "noopener");
+  });
+}
