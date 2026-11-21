@@ -677,6 +677,14 @@ p {
   margin-top: 24px;
 }
 
+/* Dica embaixo do botão "Enviar pelo WhatsApp" */
+.contato__dica {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--cinza-texto);
+}
+
 .contato__inner ul li {
   margin-bottom: 10px;
 }
@@ -3001,4 +3009,4 @@ a.resumo-card:hover {
 .cpf-feedback--ok   { color: var(--cor-sucesso, #22c55e); }
 .cpf-feedback--erro { color: var(--cor-erro, #ef4444); }
 input.cpf--valido   { border-color: var(--cor-sucesso, #22c55e); }
-input.cpf--invalido { border-color: var(--cor-erro, #ef4444); }
+input.cpf--invalido { border-color: var(--cor-erro, #ef4444); }
