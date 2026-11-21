@@ -57,7 +57,7 @@ foreach ($treinos as $t) {
 $exercicios = [];
 if ($treino_atual) {
   $stmt = $pdo->prepare("
-    SELECT te.id, e.nome, te.series, te.repeticoes, te.carga, te.observacao
+    SELECT te.id, te.exercicios_id, e.grupo_muscular_id, e.nome, te.series, te.repeticoes, te.carga, te.observacao
     FROM treino_exercicios te
     INNER JOIN exercicios e ON e.id = te.exercicios_id
     WHERE te.treinos_id = :treino
@@ -122,7 +122,7 @@ topo_professor('Montar Treino', 'alunos');
         <p class="alert alert--erro">Escolha uma data de validade que ainda não passou.</p>
       <?php endif; ?>
       <?php if (isset($_GET['erro_edicao'])): ?>
-        <p class="alert alert--erro">Informe pelo menos 1 série e as repetições.</p>
+        <p class="alert alert--erro">Escolha o exercício e informe pelo menos 1 série e as repetições.</p>
       <?php endif; ?>
 
       <!-- VALIDADE DA FICHA: a professora monta o treino pra 3 ou 4 meses; depois disso aparece "Vencido" no painel.
@@ -224,7 +224,26 @@ topo_professor('Montar Treino', 'alunos');
                       <input type="hidden" name="treino_id" value="<?= $treino_atual['id'] ?>" />
                       <input type="hidden" name="item_id" value="<?= $ex['id'] ?>" />
 
-                      <h4><?= htmlspecialchars($ex['nome']) ?></h4>
+                      <h4>Editando: <?= htmlspecialchars($ex['nome']) ?></h4>
+
+                      <!-- TROCAR EXERCÍCIO: já vem com o grupo e o exercício atuais.
+                           Mudar o grupo refaz a lista de exercícios (js/script.js). A posição na ficha não muda. -->
+                      <div class="form-linha">
+                        <label class="campo-mini">Grupo muscular
+                          <select data-troca-grupo>
+                            <?php foreach ($grupos as $g): ?>
+                              <option value="<?= $g['id'] ?>" <?= $g['id'] == $ex['grupo_muscular_id'] ? 'selected' : '' ?>><?= htmlspecialchars($g['nome']) ?></option>
+                            <?php endforeach; ?>
+                          </select>
+                        </label>
+                        <label class="campo-mini">Exercício
+                          <select name="exercicio_id" data-troca-exercicio data-original="<?= (int) $ex['exercicios_id'] ?>" required>
+                            <?php foreach ($exercicios_por_grupo[$ex['grupo_muscular_id']] ?? [] as $opcao): ?>
+                              <option value="<?= $opcao['id'] ?>" <?= $opcao['id'] == $ex['exercicios_id'] ? 'selected' : '' ?>><?= htmlspecialchars($opcao['nome']) ?></option>
+                            <?php endforeach; ?>
+                          </select>
+                        </label>
+                      </div>
                       <div class="form-linha">
                         <label class="campo-mini">Séries
                           <input type="number" name="series" min="1" value="<?= (int) $ex['series'] ?>" required />
