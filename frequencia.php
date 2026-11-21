@@ -169,6 +169,7 @@ $stmt = $pdo->prepare("
          (SELECT COUNT(*) FROM checkins c WHERE c.alunos_id = a.id AND c.data > :d7) AS ultimos_7,
          (SELECT COUNT(*) FROM checkins c WHERE c.alunos_id = a.id AND c.data > :d30) AS ultimos_30
   FROM alunos a
+  WHERE a.ativo = 1
   ORDER BY a.nome
 ");
 $stmt->execute(['d7' => date('Y-m-d', strtotime('-7 days')), 'd30' => date('Y-m-d', strtotime('-30 days'))]);
@@ -256,4 +257,4 @@ topo_professor('Frequência', 'frequencia');
           </table>
         </div>
       <?php endif; ?>
-<?php rodape_professor(); ?>
+<?php rodape_professor(); ?>

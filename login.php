@@ -25,9 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   // 3. Verifica se achou o usuário E se a senha bate com o hash salvo.
-  //    Professor desativado pelo administrador não entra (mesmo com a senha certa).
-  if ($usuario && password_verify($senha_digitada, $usuario['senha']) && $tipo === 'professor' && !$usuario['ativo']) {
-    $erro = "Seu acesso foi desativado. Fale com a administração da academia.";
+  //    Professor ou aluno desativado não entra (mesmo com a senha certa).
+  if ($usuario && password_verify($senha_digitada, $usuario['senha']) && (int) ($usuario['ativo'] ?? 1) === 0) {
+    $erro = $tipo === 'professor'
+      ? "Seu acesso foi desativado. Fale com a administração da academia."
+      : "Seu acesso está pausado. Fale com a recepção da academia para reativar.";
   } elseif ($usuario && password_verify($senha_digitada, $usuario['senha'])) {
     // Gera um ID de sessão novo a cada login: impede que alguém "plante" um ID de sessão
     // antes (fixação de sessão) e continue logado junto com o usuário depois que ele entra.
@@ -77,6 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- AVISO: professor desativado enquanto estava logado -->
         <?php if (isset($_GET['desativado']) && !$erro): ?>
           <p class="alert alert--erro">Seu acesso foi desativado. Fale com a administração da academia.</p>
+        <?php endif; ?>
+
+        <!-- AVISO: aluno desativado enquanto estava logado -->
+        <?php if (isset($_GET['pausado']) && !$erro): ?>
+          <p class="alert alert--erro">Seu acesso está pausado. Fale com a recepção da academia para reativar.</p>
         <?php endif; ?>
 
         <!-- AVISO DE ERRO -->

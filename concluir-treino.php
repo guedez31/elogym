@@ -16,6 +16,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $aluno_id = $_SESSION['usuario_id'];
+
+// Aluno desativado não faz check-in (o meu-treino.php já encerra a sessão dele)
+$stmt = $pdo->prepare("SELECT ativo FROM alunos WHERE id = :id");
+$stmt->execute(['id' => $aluno_id]);
+if (!$stmt->fetchColumn()) {
+  header('Location: meu-treino.php');
+  exit;
+}
+
 $treino_id = (int) ($_POST['treino_id'] ?? 0);
 $hoje = date('Y-m-d');
 
@@ -51,4 +60,4 @@ $stmt->execute([
 ]);
 
 header('Location: meu-treino.php?treino=' . $treino_id . '&concluido=1');
-exit;
+exit;

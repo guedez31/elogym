@@ -25,10 +25,23 @@ $stmt = $pdo->prepare("
              AND NOT EXISTS (SELECT 1 FROM treino_exercicios te WHERE te.treinos_id = t.id)) AS treinos_vazios,
          (SELECT MAX(c.data) FROM checkins c WHERE c.alunos_id = a.id) AS ultimo_checkin
   FROM alunos a
+  WHERE a.ativo = 1
   ORDER BY a.nome
 ");
 $stmt->execute(['hoje1' => $hoje]);
 $alunos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ---------- ALUNOS DESATIVADOS ----------
+// Ficam fora da lista principal. Aparecem só em ?desativados=1, onde qualquer professor pode reativar.
+$ver_desativados = isset($_GET['desativados']);
+$stmt = $pdo->query("
+  SELECT a.id, a.nome, a.desativado_em,
+         (SELECT MAX(c.data) FROM checkins c WHERE c.alunos_id = a.id) AS ultimo_checkin
+  FROM alunos a
+  WHERE a.ativo = 0
+  ORDER BY a.nome
+");
+$desativados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Calcula o status de cada aluno uma vez só (usado na tabela, nos cards e no filtro)
 foreach ($alunos as &$aluno) {
@@ -58,10 +71,63 @@ $legenda = $pdo->query("SELECT sigla, descricao FROM limitacoes_saude ORDER BY s
 
 topo_professor('Meus Alunos', 'alunos');
 ?>
-  <!-- AVISO DE SUCESSO: aparece quando acabou de cadastrar um aluno -->
+  <!-- AVISOS DE SUCESSO: cadastro, desativação e exclusão de aluno -->
   <?php if (isset($_GET['cadastrado'])): ?>
     <p class="alert alert--sucesso">Aluno cadastrado com sucesso!</p>
   <?php endif; ?>
+  <?php if (isset($_GET['desativado'])): ?>
+    <p class="alert alert--sucesso">Aluno desativado. As fichas e a frequência continuam guardadas: é só reativar em "Desativados".</p>
+  <?php endif; ?>
+  <?php if (isset($_GET['excluido'])): ?>
+    <p class="alert alert--sucesso">Aluno excluído definitivamente.</p>
+  <?php endif; ?>
+
+  <?php if ($ver_desativados): ?>
+    <!-- ===================== LISTA DE ALUNOS DESATIVADOS ===================== -->
+    <div class="painel-cabecalho">
+      <div>
+        <h2>Alunos desativados</h2>
+        <p class="subtitulo">Não aparecem na lista principal e não conseguem entrar. Reativar devolve o acesso e as fichas.</p>
+      </div>
+      <a href="professor.php" class="btn btn--secundario">← Voltar</a>
+    </div>
+
+    <?php if (!$desativados): ?>
+      <div class="card estado-vazio">
+        <h3>Nenhum aluno desativado</h3>
+        <p>Para desativar, abra "Dados" do aluno na lista principal.</p>
+      </div>
+    <?php else: ?>
+      <div class="tabela-wrapper">
+        <table class="tabela-cards tabela-alunos">
+          <tr>
+            <th>Nome</th>
+            <th>Desativado em</th>
+            <th>Último treino</th>
+            <th>Ação</th>
+          </tr>
+          <?php foreach ($desativados as $d): ?>
+            <tr>
+              <td class="td-titulo"><?= htmlspecialchars($d['nome']) ?></td>
+              <td data-label="Desativado em"><?= $d['desativado_em'] ? date('d/m/Y', strtotime($d['desativado_em'])) : '—' ?></td>
+              <td data-label="Último treino"><?= texto_ultimo_treino($d['ultimo_checkin']) ?></td>
+              <td class="td-acoes">
+                <div class="painel-acoes">
+                  <form action="status-aluno.php" method="post"
+                        onsubmit="return confirm('Reativar <?= htmlspecialchars(addslashes($d['nome'])) ?>? Ele volta a entrar com o mesmo CPF e senha.');">
+                    <input type="hidden" name="acao" value="reativar" />
+                    <input type="hidden" name="aluno_id" value="<?= $d['id'] ?>" />
+                    <button type="submit" class="btn btn--sm btn--primario">Reativar</button>
+                  </form>
+                  <a href="editar-aluno.php?id=<?= $d['id'] ?>" class="btn btn--sm btn--editar">Dados</a>
+                </div>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+        </table>
+      </div>
+    <?php endif; ?>
+  <?php else: ?>
 
   <!-- CABEÇALHO DO PAINEL: título e atalho pro cadastro (o resto fica no menu lateral) -->
   <div class="painel-cabecalho">
@@ -69,7 +135,10 @@ topo_professor('Meus Alunos', 'alunos');
       <h2>Meus Alunos</h2>
       <p class="subtitulo">Olá, <?= htmlspecialchars(explode(' ', $_SESSION['usuario_nome'])[0]) ?>! Hoje é <?= date('d/m/Y') ?>.</p>
     </div>
-    <a href="cadastrar-aluno.php" class="btn btn--primario">+ Cadastrar Aluno</a>
+    <div class="painel-acoes">
+      <a href="professor.php?desativados=1" class="btn btn--secundario">Desativados (<?= count($desativados) ?>)</a>
+      <a href="cadastrar-aluno.php" class="btn btn--primario">+ Cadastrar Aluno</a>
+    </div>
   </div>
 
   <!-- CARDS DE RESUMO: tocar filtra a tabela; tocar de novo (ou em "Todos") tira o filtro -->
@@ -188,4 +257,5 @@ topo_professor('Meus Alunos', 'alunos');
       <span class="badge badge--vencido">Vencido</span> precisa de ficha nova
     </p>
   </div>
+  <?php endif; /* fim da lista principal (o else da lista de desativados) */ ?>
 <?php rodape_professor(); ?>

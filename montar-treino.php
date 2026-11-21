@@ -8,7 +8,7 @@ require_once 'includes/layout.php';
 // Lê o id do aluno vindo da URL (?id=) e busca o nome dele; se o id for inválido, volta pro painel.
 $aluno_id = (int) ($_GET['id'] ?? 0);
 
-$stmt = $pdo->prepare("SELECT id, nome, treino_validade FROM alunos WHERE id = :id");
+$stmt = $pdo->prepare("SELECT id, nome, treino_validade, ativo FROM alunos WHERE id = :id");
 $stmt->execute(['id' => $aluno_id]);
 $aluno = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -109,6 +109,11 @@ topo_professor('Montar Treino', 'alunos');
       <br />
       
             <!-- AVISOS: treino apagado, exercício editado e erro na edição -->
+      <?php if (isset($_GET['reativado'])): ?>
+        <p class="alert alert--sucesso">Aluno reativado! Ele já pode entrar de novo com o mesmo CPF e senha. Confira abaixo se a ficha precisa ser renovada.</p>
+      <?php elseif (!$aluno['ativo']): ?>
+        <p class="alert alert--aviso">Este aluno está desativado: ele não consegue entrar no sistema. Para reativar, use "Dados do aluno".</p>
+      <?php endif; ?>
       <?php if (isset($_GET['apagado'])): ?>
         <p class="alert alert--sucesso">Treino <?= htmlspecialchars($_GET['apagado']) ?> apagado.</p>
       <?php endif; ?>

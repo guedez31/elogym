@@ -2246,6 +2246,26 @@ table {
   display: none;
 }
 
+/* Card "Situação do aluno" (editar-aluno.php): desativar/reativar e excluir */
+.situacao-aluno h2 {
+  margin-bottom: 8px;
+}
+.situacao-aluno p {
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--texto-suave);
+}
+.situacao-aluno__excluir {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--borda);
+}
+.situacao-aluno__excluir h3 {
+  margin-bottom: 6px;
+  font-size: 1rem;
+  color: var(--vermelho);
+}
+
 /* Aviso amarelo (ex: "sua ficha venceu" na tela do aluno) */
 .alert--aviso {
   background: var(--amarelo-claro);

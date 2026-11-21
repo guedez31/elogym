@@ -7,7 +7,7 @@ require_once 'includes/protecao-professor.php';
 // Lê o id do aluno (?id= na URL ou campo escondido do formulário) e busca os dados dele; se não existir, volta pro painel.
 $id = (int) ($_GET['id'] ?? $_POST['id'] ?? 0);
 
-$stmt = $pdo->prepare("SELECT id, nome, cpf, data_nascimento FROM alunos WHERE id = :id");
+$stmt = $pdo->prepare("SELECT id, nome, cpf, data_nascimento, ativo, desativado_em FROM alunos WHERE id = :id");
 $stmt->execute(['id' => $id]);
 $aluno = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -108,8 +108,16 @@ topo_professor('Editar Aluno', 'alunos');
       <div class="card card-formulario">
         <div class="painel-cabecalho">
           <h2>Editar Aluno</h2>
-          <a href="professor.php" class="btn btn--secundario">← Voltar</a>
+          <a href="<?= $aluno['ativo'] ? 'professor.php' : 'professor.php?desativados=1' ?>" class="btn btn--secundario">← Voltar</a>
         </div>
+
+        <!-- Aluno desativado: aviso no topo (o botão de reativar fica no fim da página) -->
+        <?php if (!$aluno['ativo']): ?>
+          <p class="alert alert--aviso">
+            Aluno desativado<?= $aluno['desativado_em'] ? ' em ' . date('d/m/Y', strtotime($aluno['desativado_em'])) : '' ?>.
+            Ele não consegue entrar no sistema até ser reativado.
+          </p>
+        <?php endif; ?>
 
         <!-- Avisos: sucesso (verde) e erro de validação (vermelho) -->
         <?php if (($_GET['ok'] ?? '') === 'dados'): ?>
@@ -171,5 +179,48 @@ topo_professor('Editar Aluno', 'alunos');
 
           <button type="submit" class="btn btn--primario">Redefinir senha</button>
         </form>
+      </div>
+
+      <!-- CARD 3: SITUAÇÃO DO ALUNO
+           Desativar/Reativar: qualquer professor. Excluir de vez: só o administrador. -->
+      <div class="card card-formulario situacao-aluno">
+        <h2>Situação do aluno</h2>
+
+        <?php if ($aluno['ativo']): ?>
+          <p>
+            Aluno saiu da academia ou parou de treinar? Desative: ele some da lista e não entra mais no sistema,
+            mas as fichas e a frequência ficam guardadas. Se ele voltar, é só reativar.
+          </p>
+          <form action="status-aluno.php" method="post"
+                onsubmit="return confirm('Desativar este aluno? Ele não vai conseguir entrar até ser reativado.');">
+            <input type="hidden" name="acao" value="desativar" />
+            <input type="hidden" name="aluno_id" value="<?= $aluno['id'] ?>" />
+            <button type="submit" class="btn btn--perigo">Desativar aluno</button>
+          </form>
+        <?php else: ?>
+          <p>Reativar devolve o acesso com o mesmo CPF e senha, e as fichas voltam como estavam.</p>
+          <form action="status-aluno.php" method="post">
+            <input type="hidden" name="acao" value="reativar" />
+            <input type="hidden" name="aluno_id" value="<?= $aluno['id'] ?>" />
+            <button type="submit" class="btn btn--primario">Reativar aluno</button>
+          </form>
+        <?php endif; ?>
+
+        <?php if (!empty($_SESSION['usuario_admin'])): ?>
+          <!-- EXCLUIR: só para cadastro feito errado ou quando o aluno pede para apagar os dados (LGPD) -->
+          <div class="situacao-aluno__excluir">
+            <h3>Excluir definitivamente</h3>
+            <p>
+              Apaga o aluno, as fichas, as siglas de saúde e o histórico de frequência. Não dá pra desfazer.
+              Use só para cadastro feito errado ou quando o aluno pedir para apagar os dados dele.
+            </p>
+            <form action="status-aluno.php" method="post"
+                  onsubmit="return confirm('Excluir DEFINITIVAMENTE este aluno, as fichas e o histórico? Isso não pode ser desfeito.');">
+              <input type="hidden" name="acao" value="excluir" />
+              <input type="hidden" name="aluno_id" value="<?= $aluno['id'] ?>" />
+              <button type="submit" class="btn btn--perigo">Excluir aluno</button>
+            </form>
+          </div>
+        <?php endif; ?>
       </div>
 <?php rodape_professor(); ?>

@@ -14,9 +14,17 @@ require_once 'includes/layout.php';
 // O aluno vem da sessão (não da URL), então ele nunca consegue ver o treino de outra pessoa.
 // Se ainda não trocou a senha temporária, manda pra troca antes de mostrar o treino.
 $aluno_id = $_SESSION['usuario_id'];
-$stmt = $pdo->prepare("SELECT primeiro_acesso, treino_validade FROM alunos WHERE id = :id");
+$stmt = $pdo->prepare("SELECT primeiro_acesso, treino_validade, ativo FROM alunos WHERE id = :id");
 $stmt->execute(['id' => $aluno_id]);
 $dados_aluno = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Aluno apagado ou desativado pela professora: encerra a sessão na hora (mesmo que já estivesse logado)
+if (!$dados_aluno || !$dados_aluno['ativo']) {
+  session_destroy();
+  header('Location: login.php?pausado=1');
+  exit;
+}
+
 if ($dados_aluno['primeiro_acesso'] == 1) {
   header('Location: trocasenha.php');
   exit;
@@ -357,4 +365,4 @@ if ($treinos) {
 
     <script src="js/script.js"></script>
   </body>
-</html>
+</html>
